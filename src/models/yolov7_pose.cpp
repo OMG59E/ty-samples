@@ -30,7 +30,7 @@ int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vecto
 
     detections.clear();
     for (int dn=0; dn<num_anchors; ++dn) {
-        float conf = tensor.data[dn * step + 4];  // obj_conf
+        float conf = tensor.data[dn * step + 4] * tensor.data[dn * step + 5];  // obj_conf
         if (conf < conf_threshold_)
             continue;
 
@@ -61,7 +61,7 @@ int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vecto
         detection.box.x2 = x2;
         detection.box.y2 = y2;
         detection.cls = 0;
-        detection.conf = tensor.data[dn * step + 5] * conf; // obj_conf * cls_conf
+        detection.conf = conf; // obj_conf * cls_conf
         for (int k=0; k<num_keypoint_; ++k) {
             detection.kpts[k].x = int((tensor.data[dn * step + k * 3 + 6] - pad_w) / gain);
             detection.kpts[k].y = int((tensor.data[dn * step + k * 3 + 7] - pad_h) / gain);

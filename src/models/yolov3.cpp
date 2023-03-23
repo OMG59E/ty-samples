@@ -97,6 +97,8 @@ namespace dcl {
                                 max_conf = score;
                             }
                         }
+                        if (max_conf < conf_threshold_)
+                            continue;
                         detection.cls = num_cls;
                         detection.conf = max_conf;
                         detections.emplace_back(detection);

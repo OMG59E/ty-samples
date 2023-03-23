@@ -1,25 +1,19 @@
 //
-// Created  on 22-9-20.
+// Created by intellif on 23-3-16.
 //
-#include <cassert>
-#include <cmath>
 
-#include "yolov5.h"
+#include "yolov6_face.h"
 #include "utils/nms.h"
 
 namespace dcl {
-    int YoloV5::preprocess(std::vector<dcl::Mat> &images) {
-        return 0;
-    }
-
-    int YoloV5::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+    int YoloV6Face::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
         }
 
-        if (1 != vOutputTensors_.size() && 4 != vOutputTensors_.size()) {
-            DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 3", vOutputTensors_.size());
+        if (1 != vOutputTensors_.size()) {
+            DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 1", vOutputTensors_.size());
             return -2;
         }
 
@@ -27,16 +21,26 @@ namespace dcl {
         float pad_h = (input_sizes_[0] - images[0].h() * gain) * 0.5f;
         float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
-        const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 8400, 85
-        detections.clear();
-        const int num_anchors = tensor.c();
-        const int step = num_classes_ + 5;
-        assert(1 == tensor.n());
-        assert(tensor.d[tensor.nbDims-1] == step);
+        const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 25200, 117
 
-        for (int dn=0; dn < num_anchors; ++dn) {
-            float obj_conf = tensor.data[dn * step + 4];
-            if (obj_conf < conf_threshold_)
+        const int num_anchors = tensor.c();
+        const int step = num_classes_ + 5 + 10;
+
+        if (1 != tensor.n()) {
+            DCL_APP_LOG(DCL_ERROR, "batch size must be equal 1", vOutputTensors_.size());
+            return -3;
+        }
+
+        if (tensor.d[tensor.nbDims - 1] != step) {
+            DCL_APP_LOG(DCL_ERROR, "tensor.d[tensor.nbDims-1](%d) must be equal step(%d)",
+                        tensor.d[tensor.nbDims - 1], step);
+            return -4;
+        }
+
+        detections.clear();
+        for (int dn = 0; dn < num_anchors; ++dn) {
+            float conf = tensor.data[dn * step + 14] * tensor.data[dn * step + 15];
+            if (conf < conf_threshold_)
                 continue;
 
             float w = tensor.data[dn * step + 2];
@@ -65,24 +69,18 @@ namespace dcl {
             detection.box.y1 = y1;
             detection.box.x2 = x2;
             detection.box.y2 = y2;
-            int num_cls{-1};
-            float max_conf{-1};
-            for (int dc = 0; dc < num_classes_; ++dc) {  // [0-80)
-                float conf = tensor.data[dn * step + 5 + dc] * obj_conf;
-                if (max_conf < conf) {
-                    num_cls = dc;
-                    max_conf = conf;
-                }
+            detection.cls = 0;
+            detection.conf = conf;
+            for (int k=0; k<5; ++k) {
+                detection.pts[k].x = int((tensor.data[dn * step + k * 2 + 4] - pad_w) / gain);
+                detection.pts[k].y = int((tensor.data[dn * step + k * 2 + 5] - pad_h) / gain);
             }
-            if (max_conf < conf_threshold_)
-                continue;
-            detection.cls = num_cls;
-            detection.conf = max_conf;
             detections.emplace_back(detection);
         }
 
         if (detections.empty())
             return 0;
+
         // nms
         non_max_suppression(detections, iou_threshold_);
 

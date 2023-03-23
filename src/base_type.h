@@ -7,6 +7,8 @@
 
 #include "dcl.h"
 #include "utils/macro.h"
+#include "opencv2/opencv.hpp"
+
 #include <string>
 #include <vector>
 
@@ -185,13 +187,17 @@ namespace dcl {
         }
     };
 
+    typedef std::vector<cv::Point> contour_t;
+
     typedef struct {
         float conf{0.0f};
         int cls{-1};  // cls index
         std::string name; // cls_name
         Box box;
         Point pts[5]{};  // 5 landmark
-        Point kpts[17]{};
+        Point kpts[17]{}; // 17-keypoints
+        float mask[32]{};
+        std::vector<contour_t> contours;
     } detection_t;
 
     typedef struct {

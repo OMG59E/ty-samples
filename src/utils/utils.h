@@ -69,4 +69,17 @@ static int readBinFile(const std::string &fileName, void *&inputBuff, uint32_t &
     return 0;
 }
 
+static dcl::Mat cvMatToDclMat(const cv::Mat& cvMat) {
+    dcl::Mat dclMat;
+    dclMat.data = cvMat.data;
+    dclMat.channels = cvMat.channels();
+    dclMat.height = cvMat.rows;
+    dclMat.width = cvMat.cols;
+    dclMat.original_height = cvMat.rows;
+    dclMat.original_width = cvMat.cols;
+    dclMat.pixelFormat = DCL_PIXEL_FORMAT_BGR_888;
+    dclMat.own = false;
+    return dclMat;
+}
+
 #endif //DCL_WRAPPER_UTILS_H

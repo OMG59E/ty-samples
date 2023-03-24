@@ -26,7 +26,7 @@ namespace dcl {
         const float anchor_sizes_[3][3][2] = {{{116, 90}, {156, 198}, {373, 326}},
                                               {{30, 61}, {62, 45}, {59, 119}},
                                               {{10, 13}, {16, 30}, {33, 23}}};
-        bool enable_aipp_{true};
+        // bool enable_aipp_{true};
     };
 }
 

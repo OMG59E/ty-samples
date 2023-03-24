@@ -6,24 +6,45 @@
 
 #include "yolov3.h"
 #include "utils/nms.h"
+#include "utils/color.h"
+#include "utils/resize.h"
 
 namespace dcl {
-    float sigmoid(float x) {
-        return 1.0f / (1.0f + expf(-x));
-    }
+    float sigmoid(float x) { return 1.0f / (1.0f + expf(-x)); }
 
-    int YoloV3::load(const std::string &modelPath, bool enableAipp) {
-        enable_aipp_ = enableAipp;
+    int YoloV3::load(const std::string &modelPath) {
         conf_threshold_inv_ = -logf((1.0f / conf_threshold_) - 1.0f);
         // init feature map size
         for (int i = 0; i < 3; ++i) {
             layer_sizes_[i][0] = input_sizes_[0] / strides_[i][0];  // w
             layer_sizes_[i][1] = input_sizes_[1] / strides_[i][1];  // h
         }
-        return net_.load(modelPath, enable_aipp_);
+        return net_.load(modelPath);
     }
 
-    int YoloV3::preprocess(std::vector<dcl::Mat> &images) {
+    int YoloV3::preprocess(const std::vector<dcl::Mat> &images) {
+        if (images.size() != net_.getInputNum()) {
+            DCL_APP_LOG(DCL_ERROR, "images size[%d] != model input size[%d]", images.size(), net_.getInputNum());
+            return -1;
+        }
+        std::vector<input_t>& vInputs = net_.getInputs();
+        for (int n=0; n < images.size(); ++n) {
+            if (!vInputs[n].hasAipp()) {  // not aipp, manual preprocess
+                // resize + hwc2chw + BGR2RGB
+                return resize(images[n].data, images[n].c(), images[n].h(), images[n].w(),
+                              static_cast<unsigned char*>(vInputs[n].data), vInputs[n].h(), vInputs[n].w(), IMAGE_COLOR_BGR888_TO_BGR888_PLANAR);
+            } else { //  AIPP not support BGR2RGB
+                dcl::Mat img;
+                img.data = static_cast<unsigned char*>(vInputs[n].data);
+                img.channels = images[n].channels;
+                img.height = images[n].height;
+                img.width = images[n].width;
+                img.pixelFormat = DCL_PIXEL_FORMAT_BGR_888_PLANAR;
+                dcl::cvtColor(images[n], img, IMAGE_COLOR_BGR888_TO_BGR888_PLANAR);  // hwc -> chw and BGR -> RGB
+                // update input info with aipp
+                vInputs[n].update(img.c(), img.h(), img.w(), img.pixelFormat);
+            }
+        }
         return 0;
     }
 

@@ -5,16 +5,49 @@
 #include "base_classification.h"
 
 namespace dcl {
-    int BaseClassifier::load(const std::string &modelPath, bool enableAipp) {
-        return net_.load(modelPath, enableAipp);
+    int BaseClassifier::load(const std::string &modelPath) {
+        return net_.load(modelPath);
     }
 
-    int BaseClassifier::inference(dcl::Mat &image, std::vector<dcl::classification_t> &classifications) {
+    int BaseClassifier::preprocess(const std::vector<dcl::Mat> &images) {
+        if (images.size() != net_.getInputNum()) {
+            DCL_APP_LOG(DCL_ERROR, "images size[%d] != model input size[%d]", images.size(), net_.getInputNum());
+            return -1;
+        }
+        std::vector<input_t>& vInputs = net_.getInputs();
+        for (int n=0; n < images.size(); ++n) {
+            if (!vInputs[n].hasAipp()) {  // not aipp, manual preprocess
+                // resize + hwc2chw + BGR2RGB
+                return resize(images[n].data, images[n].c(), images[n].h(), images[n].w(),
+                              static_cast<unsigned char*>(vInputs[n].data), vInputs[n].h(), vInputs[n].w(), IMAGE_COLOR_BGR888_TO_BGR888_PLANAR);
+            } else { //  AIPP not support BGR2RGB
+                dcl::Mat img;
+                img.data = static_cast<unsigned char*>(vInputs[n].data);
+                img.channels = images[n].channels;
+                img.height = images[n].height;
+                img.width = images[n].width;
+                img.pixelFormat = DCL_PIXEL_FORMAT_BGR_888_PLANAR;
+                dcl::cvtColor(images[n], img, IMAGE_COLOR_BGR888_TO_BGR888_PLANAR);  // hwc -> chw and BGR -> RGB
+                // update input info with aipp
+                vInputs[n].update(img.c(), img.h(), img.w(), img.pixelFormat);
+            }
+        }
+        return 0;
+    }
+
+    int BaseClassifier::inference(const dcl::Mat &image, std::vector<classification_t> &outputs) {
         std::vector<dcl::Mat> images = {image};
-        return inference(images, classifications);
+        return inference(images, outputs);
     }
 
-    int BaseClassifier::inference(std::vector<dcl::Mat> &images, std::vector<dcl::classification_t> &classifications) {
+    int BaseClassifier::inference(const std::vector<dcl::Mat> &images, std::vector<classification_t> &outputs) {
+        for (auto& image : images) {
+            if (image.size() > MAX_IMAGE_SIZE) {
+                DCL_APP_LOG(DCL_ERROR, "Not support image size: %d, and max support image size: %d",
+                            image.size(), MAX_IMAGE_SIZE);
+                return -1;
+            }
+        }
         high_resolution_clock::time_point t0 = high_resolution_clock::now();
         if (0 != preprocess(images)) {
             DCL_APP_LOG(DCL_ERROR, "Failed to preprocess");
@@ -22,12 +55,12 @@ namespace dcl {
         }
         high_resolution_clock::time_point t1 = high_resolution_clock::now();
         vOutputTensors_.clear();
-        if (0 != net_.inference(images, vOutputTensors_)) {
+        if (0 != net_.inference(vOutputTensors_)) {
             DCL_APP_LOG(DCL_ERROR, "Failed to inference");
             return -2;
         }
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
-        if (0 != postprocess(images, classifications)) {
+        if (0 != postprocess(images, outputs)) {
             DCL_APP_LOG(DCL_ERROR, "Failed to postprocess");
             return -3;
         }
@@ -38,10 +71,6 @@ namespace dcl {
         DCL_APP_LOG(DCL_INFO, "preprocess: %.3fms, inference: %.3fms, postprocess: %.3fms",
                     tp0.count() / 1000.0f, tp1.count() / 1000.0f, tp2.count() / 1000.0f);
         return 0;
-    }
-
-    int BaseClassifier::unload() {
-        return net_.unload();
     }
 
     int BaseClassifier::postprocess(const std::vector<dcl::Mat> &images,
@@ -76,4 +105,6 @@ namespace dcl {
         }
         return 0;
     }
+
+    int BaseClassifier::unload() { return net_.unload(); }
 }

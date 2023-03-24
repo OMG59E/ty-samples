@@ -159,6 +159,12 @@ namespace dcl {
         int cy() const { return (y1 + y2) / 2; }
     };
 
+    struct Size {
+        int h{0}, w{0};
+        Size() = default;
+        Size(int _h, int _w) { h = _h; w = _w;}
+    };
+    
     struct Point {
         int x{0};
         int y{0};

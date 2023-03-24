@@ -16,7 +16,7 @@ namespace dcl {
          * @param images
          * @return
          */
-        int preprocess(std::vector<dcl::Mat> &images) override;
+        int preprocess(const std::vector<dcl::Mat> &images) override;
 
         /**
          *

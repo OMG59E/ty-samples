@@ -8,7 +8,6 @@
 #include "opencv2/opencv.hpp"
 
 namespace dcl {
-
     int YoloV5Seg::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
@@ -131,7 +130,6 @@ namespace dcl {
                 }
             }
 
-            // 找轮廓坐标
             cv::Mat cvMask(cv::Size(W, H), CV_8UC1, mask);
             detection.contours.clear();
             cv::findContours(cvMask, detection.contours, cv::noArray(), cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);

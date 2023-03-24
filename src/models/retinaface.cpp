@@ -4,13 +4,14 @@
 
 #include "retinaface.h"
 #include "utils/nms.h"
+#include "utils/color.h"
+#include "utils/resize.h"
 
 #include <cassert>
 #include <cmath>
 
 namespace dcl {
-    int RetinaFace::load(const std::string &modelPath, bool enableAipp) {
-        enable_aipp_ = enableAipp;
+    int RetinaFace::load(const std::string &modelPath) {
         // init feature map size
         for (int i = 0; i < 3; ++i) {
             layer_sizes_[i * 2 + 0] = input_sizes_[0] / steps_[i * 2 + 0];  // w
@@ -43,7 +44,7 @@ namespace dcl {
             offset += (layer_w * layer_h);
         }
 
-        return net_.load(modelPath, enableAipp);
+        return net_.load(modelPath);
     }
 
     int RetinaFace::unload() {
@@ -51,12 +52,29 @@ namespace dcl {
         return net_.unload();
     }
 
-    int RetinaFace::preprocess(std::vector<dcl::Mat> &images) {
-        if (enable_aipp_)
-            return 0;
-
-        // TODO  when build without aipp
-
+    int RetinaFace::preprocess(const std::vector<dcl::Mat> &images) {
+        if (images.size() != net_.getInputNum()) {
+            DCL_APP_LOG(DCL_ERROR, "images size[%d] != model input size[%d]", images.size(), net_.getInputNum());
+            return -1;
+        }
+        std::vector<input_t>& vInputs = net_.getInputs();
+        for (int n=0; n < images.size(); ++n) {
+            if (!vInputs[n].hasAipp()) {  // not aipp, manual preprocess
+                // resize + hwc2chw + BGR2RGB
+                return resize(images[n].data, images[n].c(), images[n].h(), images[n].w(),
+                              static_cast<unsigned char*>(vInputs[n].data), vInputs[n].h(), vInputs[n].w(), IMAGE_COLOR_BGR888_TO_BGR888_PLANAR);
+            } else { //  AIPP not support BGR2RGB
+                dcl::Mat img;
+                img.data = static_cast<unsigned char*>(vInputs[n].data);
+                img.channels = images[n].channels;
+                img.height = images[n].height;
+                img.width = images[n].width;
+                img.pixelFormat = DCL_PIXEL_FORMAT_BGR_888_PLANAR;
+                dcl::cvtColor(images[n], img, IMAGE_COLOR_BGR888_TO_BGR888_PLANAR);  // hwc -> chw and BGR -> RGB
+                // update input info with aipp
+                vInputs[n].update(img.c(), img.h(), img.w(), img.pixelFormat);
+            }
+        }
         return 0;
     }
 

@@ -9,8 +9,7 @@
 
 namespace dcl {
     class ResNet : public BaseClassifier {
-    public:
-        int preprocess(std::vector<dcl::Mat> &images) override { return 0; };
+
     };
 }
 #endif //DCL_WRAPPER_RESNET_H

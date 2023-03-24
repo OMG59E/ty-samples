@@ -17,22 +17,22 @@ namespace dcl {
          * @param enableAipp
          * @return
          */
-        virtual int load(const std::string &modelPath, bool enableAipp);
+        virtual int load(const std::string &modelPath);
 
         /**
          * preprocess
          * @param images
          * @return
          */
-        virtual int preprocess(std::vector<dcl::Mat> &images) = 0;
+        virtual int preprocess(const std::vector<dcl::Mat> &images);
 
         /**
          * model inference for signal input
          * @param image
-         * @param detections
+         * @param outputs
          * @return
          */
-        virtual int inference(dcl::Mat &image, std::vector<dcl::detection_t> &detections);
+        virtual int inference(const dcl::Mat &image, std::vector<detection_t> &outputs);
 
         /**
          * model inference for multi-input
@@ -40,7 +40,7 @@ namespace dcl {
          * @param detections
          * @return
          */
-        virtual int inference(std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections);
+        virtual int inference(const std::vector<dcl::Mat> &images, std::vector<detection_t> &outputs);
 
         /**
          * postprocess
@@ -48,13 +48,13 @@ namespace dcl {
          * @param detections
          * @return
          */
-        virtual int postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) = 0;
+        virtual int postprocess(const std::vector<dcl::Mat> &images, std::vector<detection_t> &outputs) = 0;
 
         /**
          * unload model
          * @return
          */
-        virtual int unload() ;
+        virtual int unload();
 
     protected:
         std::vector<dcl::Tensor> vOutputTensors_;

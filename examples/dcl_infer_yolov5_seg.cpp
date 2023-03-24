@@ -6,7 +6,7 @@
 
 #include "models/yolov5_seg.h"
 #include "utils/device.h"
-#include "utils/color.h"
+#include "utils/utils.h"
 #include "base_type.h"
 
 const static std::vector<cv::Scalar> palette = {cv::Scalar(  0,   0, 255), cv::Scalar(  0, 255,   0), cv::Scalar(255,   0,   0),
@@ -30,14 +30,12 @@ int main(int argc, char** argv) {
     const char *binFile = argv[3];
     const char *resFile = argv[4];
 
-    bool enable_aipp = true;
-
     // sdk init
     dcl::deviceInit(sdkCfg);
 
     dcl::YoloV5Seg model;
     std::vector<dcl::detection_t> detections;
-    dcl::Mat tmp, img;
+    dcl::Mat img;
 
     cv::Mat mask;
 
@@ -46,19 +44,11 @@ int main(int argc, char** argv) {
         DCL_APP_LOG(DCL_ERROR, "Failed to read img, maybe filepath not exist -> %s", imgPath);
         goto exit;
     }
-    tmp.height = src.rows;
-    tmp.width = src.cols;
-    tmp.channels = src.channels();
-    tmp.original_height = src.rows;
-    tmp.original_width = src.cols;
-    tmp.data = src.data;
-    tmp.pixelFormat = DCL_PIXEL_FORMAT_BGR_888;
-    tmp.own = false;
-    img.create(tmp.h(), tmp.w(), DCL_PIXEL_FORMAT_RGB_888_PLANAR);
-    dcl::cvtColor(tmp, img, IMAGE_COLOR_BGR888_TO_RGB888_PLANAR);
+
+    img = cvMatToDclMat(src);
 
     // load model
-    if (0 != model.load(binFile, enable_aipp)) {
+    if (0 != model.load(binFile)) {
         DCL_APP_LOG(DCL_ERROR, "Failed to load model");
         goto exit;
     }
@@ -101,8 +91,6 @@ int main(int argc, char** argv) {
 exit:
     src.release();
     mask.release();
-    img.free();
-
     // sdk release
     dcl::deviceFinalize();
     return 0;

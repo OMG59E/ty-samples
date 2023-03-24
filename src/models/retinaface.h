@@ -15,14 +15,14 @@ namespace dcl {
          * @param images
          * @return
          */
-        int load(const std::string &modelPath, bool enableAipp) override;
+        int load(const std::string &modelPath) override;
 
         /**
          *
          * @param images
          * @return
          */
-        int preprocess(std::vector<dcl::Mat> &images) override;
+        int preprocess(const std::vector<dcl::Mat> &images) override;
 
         /**
          *
@@ -50,7 +50,7 @@ namespace dcl {
         int layer_sizes_[6]{};  // wh
         int num_anchors_{0};
         float* prior_data_{nullptr};
-        bool enable_aipp_{true};
+        // bool enable_aipp_{true};
     };
 }
 

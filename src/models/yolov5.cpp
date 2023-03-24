@@ -6,9 +6,33 @@
 
 #include "yolov5.h"
 #include "utils/nms.h"
+#include "utils/color.h"
+#include "utils/resize.h"
 
 namespace dcl {
-    int YoloV5::preprocess(std::vector<dcl::Mat> &images) {
+    int YoloV5::preprocess(const std::vector<dcl::Mat> &images) {
+        if (images.size() != net_.getInputNum()) {
+            DCL_APP_LOG(DCL_ERROR, "images size[%d] != model input size[%d]", images.size(), net_.getInputNum());
+            return -1;
+        }
+        std::vector<input_t>& vInputs = net_.getInputs();
+        for (int n=0; n < images.size(); ++n) {
+            if (!vInputs[n].hasAipp()) {  // not aipp, manual preprocess
+                // resize + hwc2chw + BGR2RGB
+                return resize(images[n].data, images[n].c(), images[n].h(), images[n].w(),
+                              static_cast<unsigned char*>(vInputs[n].data), vInputs[n].h(), vInputs[n].w(), IMAGE_COLOR_BGR888_TO_RGB888_PLANAR);
+            } else { //  AIPP not support BGR2RGB
+                dcl::Mat img;
+                img.data = static_cast<unsigned char*>(vInputs[n].data);
+                img.channels = images[n].channels;
+                img.height = images[n].height;
+                img.width = images[n].width;
+                img.pixelFormat = DCL_PIXEL_FORMAT_RGB_888_PLANAR;
+                dcl::cvtColor(images[n], img, IMAGE_COLOR_BGR888_TO_RGB888_PLANAR);  // hwc -> chw and BGR -> RGB
+                // update input info with aipp
+                vInputs[n].update(img.c(), img.h(), img.w(), img.pixelFormat);
+            }
+        }
         return 0;
     }
 

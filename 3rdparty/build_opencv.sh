@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 
 # shellcheck disable=SC2164
-cd opencv_3.4.2 && mkdir -p build && cd build
+cd opencv_3.4.2 && mkdir -p build && cd build && make clean
 
 cmake \
 -DCMAKE_BUILD_TYPE=RELEASE \
 -DCMAKE_INSTALL_PREFIX=../../opencv \
 -DCMAKE_CXX_COMPILER="${ARM_CXX_COMPILER}" \
 -DCMAKE_C_COMPILER="${ARM_C_COMPILER}" \
--DCMAKE_CXX_FLAGS="-O2 -std=c++11 -w -fPIC ${ARM_CXX_FLAGS}" \
--DSOFTFP=ON \
+-DCMAKE_CXX_FLAGS="-O2 -std=c++11 -w -fPIC -mfloat-abi=softfp ${ARM_CXX_FLAGS}" \
 -DWITH_CUDA=OFF \
 -DWITH_OPENCL=OFF \
 -DWITH_FFMPEG=OFF \
@@ -23,7 +22,7 @@ cmake \
 -DWITH_GSTREAMER=OFF \
 -DWITH_GPHOTO2=OFF \
 -DWITH_MATLAB=OFF \
--DWITH_PNG=OFF \
+-DWITH_PNG=ON \
 -DWITH_VTK=OFF \
 -DWITH_WEBP=OFF \
 -DWITH_TIFF=OFF \
@@ -58,4 +57,4 @@ cmake \
 -DBUILD_opencv_python_bindings_generator=OFF \
 -DBUILD_opencv_apps=OFF ..
 
-make && make install
+make -j4 && make install

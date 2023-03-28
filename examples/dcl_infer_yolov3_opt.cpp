@@ -2,8 +2,6 @@
 // Created  on 22-9-16.
 //
 
-#include <opencv2/opencv.hpp>
-
 #include "models/yolov3_opt.h"
 #include "utils/device.h"
 #include "utils/image.h"
@@ -13,8 +11,8 @@
 
 int main(int argc, char** argv) {
     if (argc != 5) {
-        DCL_APP_LOG(DCL_ERROR, "input param num(%d) must be == 5,\n"
-                               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path", argc);
+        printf("input param num(%d) must be == 5,\n"
+               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path\n", argc);
         return -1;
     }
 

@@ -2,5 +2,5 @@
 
 # shellcheck disable=SC2164
 mkdir -p build && cd build
-cmake -DCMAKE_BUILD_TYPE=RELEASE -DRUN_TYPE=ONCHIP ..
+cmake -DCMAKE_BUILD_TYPE=RELEASE -DHOST_TYPE=a55 ..
 make

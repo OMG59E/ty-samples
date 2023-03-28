@@ -2,8 +2,6 @@
 // Created on 23-2-20.
 //
 
-#include <opencv2/opencv.hpp>
-
 #include "models/yolov7_pose.h"
 #include "utils/device.h"
 #include "utils/utils.h"
@@ -28,9 +26,8 @@ const static std::vector<int> pose_kpt_color = {16, 16, 16, 16, 16, 0, 0, 0, 0, 
 
 int main(int argc, char** argv) {
     if (argc != 5) {
-        DCL_APP_LOG(DCL_ERROR, "input param num(%d) must be == 5,\n"
-                               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path",
-                    argc);
+        printf("input param num(%d) must be == 5,\n"
+               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path\n", argc);
         return -1;
     }
 

@@ -2,8 +2,6 @@
 // Created on 23-2-21.
 //
 
-#include <opencv2/opencv.hpp>
-
 #include "models/yolov5_seg.h"
 #include "utils/device.h"
 #include "utils/utils.h"
@@ -20,8 +18,8 @@ const static std::vector<cv::Scalar> palette = {cv::Scalar(  0,   0, 255), cv::S
 
 int main(int argc, char** argv) {
     if (argc != 5) {
-        DCL_APP_LOG(DCL_ERROR, "input param num(%d) must be == 5,\n"
-                               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path", argc);
+        printf("input param num(%d) must be == 5,\n"
+               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path\n", argc);
         return -1;
     }
 

@@ -7,28 +7,28 @@
 
 namespace dcl {
     int NetOperator::load(const std::string &modelPath, bool enableAipp) {
-        void *mdlData{nullptr};
-        uint32_t mdlSize;
-        readBinFile(modelPath, mdlData, mdlSize);
+        // void *mdlData{nullptr};
+        // uint32_t mdlSize;
+        // readBinFile(modelPath, mdlData, mdlSize);
+        // dclError ret = dclmdlQuerySizeFromMem(mdlData, mdlSize, &workSize_, &weightSize_);
+        // if (DCL_SUCCESS != ret) {
+        //     DCL_APP_LOG(DCL_ERROR, "query model failed, model file is %s, errorCode is %d",
+        //                 modelPath.c_str(), static_cast<int32_t>(ret));
+        //     return -1;
+        // }
+        // ret = dclmdlLoadFromMem(mdlData, mdlSize, &id_);
+        // if (DCL_SUCCESS != ret) {
+        //     DCL_APP_LOG(DCL_ERROR, "load model from file failed, model file is %s, errorCode is %d",
+        //                 modelPath.c_str(), static_cast<int32_t>(ret));
+        //     return -2;
+        // }
+        // DCLRT_FREE(mdlData);
 
-        dclError ret = dclmdlQuerySizeFromMem(mdlData, mdlSize, &workSize_, &weightSize_);
+        dclError ret = dclmdlLoadFromFile(modelPath.c_str(), &id_);
         if (DCL_SUCCESS != ret) {
-            DCL_APP_LOG(DCL_ERROR, "query model failed, model file is %s, errorCode is %d",
+            DCL_APP_LOG(DCL_ERROR, "Failed to load model, model file is %s, errorCode is %d",
                         modelPath.c_str(), static_cast<int32_t>(ret));
             return -1;
-        }
-
-        ret = dclmdlLoadFromMem(mdlData, mdlSize, &id_);
-        if (DCL_SUCCESS != ret) {
-            DCL_APP_LOG(DCL_ERROR, "load model from file failed, model file is %s, errorCode is %d",
-                        modelPath.c_str(), static_cast<int32_t>(ret));
-            return -2;
-        }
-
-        ret = dclrtFree(mdlData);
-        if (DCL_SUCCESS != ret) {
-            DCL_APP_LOG(DCL_ERROR, "free model device memory failed");
-            return -3;
         }
 
         loadFlag_ = true;
@@ -106,11 +106,10 @@ namespace dcl {
             for (size_t i = 0; i < dclmdlGetDatasetNumBuffers(outputDataset_); ++i) {
                 dclDataBuffer *dataBuffer = dclmdlGetDatasetBuffer(outputDataset_, i);
                 void *data = dclGetDataBufferAddr(dataBuffer);
-                dclrtFree(data);
-                dclDestroyDataBuffer(dataBuffer);
+                DCLRT_FREE(data);
+                DCLMDL_DATABUFFER_FREE(dataBuffer);
             }
-            dclmdlDestroyDataset(outputDataset_);
-            outputDataset_ = nullptr;
+            DCLMDL_DATASET_FREE(outputDataset_);
         }
         return 0;
     }
@@ -119,10 +118,9 @@ namespace dcl {
         if (inputDataset_) {
             for (size_t i = 0; i < dclmdlGetDatasetNumBuffers(inputDataset_); ++i) {
                 dclDataBuffer *dataBuffer = dclmdlGetDatasetBuffer(inputDataset_, i);
-                dclDestroyDataBuffer(dataBuffer);
+                DCLMDL_DATABUFFER_FREE(dataBuffer);
             }
-            dclmdlDestroyDataset(inputDataset_);
-            inputDataset_ = nullptr;
+            DCLMDL_DATASET_FREE(inputDataset_);
         }
         return 0;
     }
@@ -215,26 +213,26 @@ namespace dcl {
         vInputs_.clear();
         vInputDims_.clear();
         for (int n=0; n<dclmdlGetNumInputs(desc_); ++n) {
-            dclmdlInputAippType type{};
-            size_t dynamicAttachedDataIndex;
-            ret = dclmdlGetAippType(id_, n, &type, &dynamicAttachedDataIndex);
-            if (DCL_SUCCESS != ret) {
-                DCL_APP_LOG(DCL_ERROR, "Failed to get aipp type, error code: %d", static_cast<int32_t>(ret));
-                return -1;
-            }
+            // dclmdlInputAippType type{};
+            // size_t dynamicAttachedDataIndex;
+            // ret = dclmdlGetAippType(id_, n, &type, &dynamicAttachedDataIndex);
+            // if (DCL_SUCCESS != ret) {
+            //     DCL_APP_LOG(DCL_ERROR, "Failed to get aipp type, error code: %d", static_cast<int32_t>(ret));
+            //     return -1;
+            // }
 
-            if (DCL_DYNAMIC_AIPP_NODE == type) {
-                nbAippInput_++;
-                dclDataBuffer *aippBuffer = dclCreateDataBuffer(nullptr, 0);
-                ret = dclmdlAddDatasetBuffer(inputDataset_, aippBuffer);
-                if (DCL_SUCCESS != ret) {
-                    DCL_APP_LOG(DCL_ERROR, "Failed to add input dataset buffer, error code: %d",
-                                static_cast<int32_t>(ret));
-                    DCLMDL_DATABUFFER_FREE(aippBuffer);
-                    return -2;
-                }
-                continue;
-            }
+            // if (DCL_DYNAMIC_AIPP_NODE == type) {
+            //     nbAippInput_++;
+            //     dclDataBuffer *aippBuffer = dclCreateDataBuffer(nullptr, 0);
+            //     ret = dclmdlAddDatasetBuffer(inputDataset_, aippBuffer);
+            //     if (DCL_SUCCESS != ret) {
+            //         DCL_APP_LOG(DCL_ERROR, "Failed to add input dataset buffer, error code: %d",
+            //                     static_cast<int32_t>(ret));
+            //         DCLMDL_DATABUFFER_FREE(aippBuffer);
+            //         return -2;
+            //     }
+            //     continue;
+            // }
 
             nbNumInput_++;
 
@@ -248,7 +246,7 @@ namespace dcl {
 
             input_t input;
             input.idx = n;
-            input.aippIdx = DCL_DATA_WITHOUT_AIPP == type ? -1 : int(dynamicAttachedDataIndex);
+            // input.aippIdx = DCL_DATA_WITHOUT_AIPP == type ? -1 : int(dynamicAttachedDataIndex);
             dclmdlIODims dims;
             memset(&dims, 0, sizeof(dims));
             if (!input.hasAipp()) {
@@ -287,19 +285,18 @@ namespace dcl {
                 }
 
             } else {
-                ret = dclrtMalloc(&(input.data), MAX_IMAGE_SIZE*sizeof(uint8_t), DCL_MEM_MALLOC_NORMAL_ONLY);
-                if (DCL_SUCCESS != ret) {
-                    DCL_APP_LOG(DCL_ERROR, "Failed to malloc data buffer with aipp, error code: %d", ret);
-                    return -6;
-                }
-
-                input.aippSize = dclmdlGetInputSizeByIndex(desc_, dynamicAttachedDataIndex);
-                ret = dclrtMalloc(&(input.aippData), input.aippSize, DCL_MEM_MALLOC_NORMAL_ONLY);
-                if (DCL_SUCCESS != ret) {
-                    DCL_APP_LOG(DCL_ERROR, "Failed to malloc aipp buffer, error code: %d", ret);
-                    return -7;
-                }
-                DCL_APP_LOG(DCL_INFO, "create data input[%d] success, and aipp buffer size: %d", n, input.aippSize);
+                //ret = dclrtMalloc(&(input.data), MAX_IMAGE_SIZE*sizeof(uint8_t), DCL_MEM_MALLOC_NORMAL_ONLY);
+                //if (DCL_SUCCESS != ret) {
+                //    DCL_APP_LOG(DCL_ERROR, "Failed to malloc data buffer with aipp, error code: %d", ret);
+                //    return -6;
+                //}
+                //input.aippSize = dclmdlGetInputSizeByIndex(desc_, dynamicAttachedDataIndex);
+                //ret = dclrtMalloc(&(input.aippData), input.aippSize, DCL_MEM_MALLOC_NORMAL_ONLY);
+                //if (DCL_SUCCESS != ret) {
+                //    DCL_APP_LOG(DCL_ERROR, "Failed to malloc aipp buffer, error code: %d", ret);
+                //    return -7;
+                //}
+                //DCL_APP_LOG(DCL_INFO, "create data input[%d] success, and aipp buffer size: %d", n, input.aippSize);
             }
             input.dim = dims;
             vInputs_.emplace_back(input);

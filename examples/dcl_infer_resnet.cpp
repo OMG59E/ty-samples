@@ -2,8 +2,6 @@
 // Created  on 22-9-22.
 //
 
-#include <opencv2/opencv.hpp>
-
 #include "models/resnet.h"
 #include "utils/device.h"
 #include "utils/utils.h"
@@ -13,8 +11,8 @@
 
 int main(int argc, char** argv) {
     if (argc != 4) {
-        DCL_APP_LOG(DCL_ERROR, "input param num(%d) must be == 4,\n"
-                               "\t1 - sdk.config, 2 - input image path, 3 - model file path", argc);
+        printf("input param num(%d) must be == 4,\n"
+               "\t1 - sdk.config, 2 - input image path, 3 - model file path", argc);
         return -1;
     }
 

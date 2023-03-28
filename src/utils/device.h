@@ -7,7 +7,8 @@
 
 #include <string>
 #include "dcl.h"
-#include "dcl_mpi.h"
+#include "dcl_memory.h"
+//#include "dcl_mpi.h"
 
 namespace dcl {
     static int deviceInit(const std::string& config_file) {
@@ -18,12 +19,12 @@ namespace dcl {
         }
         DCL_APP_LOG(DCL_INFO, "dcl init success");
 
-        ret = dclrtMemInit(0); //Non-Cached
-        if (DCL_SUCCESS != ret) {
-            DCL_APP_LOG(DCL_ERROR, "dcl mem init failed, errorCode = %d", static_cast<int32_t>(ret));
-            return -2;
-        }
-        DCL_APP_LOG(DCL_INFO, "dcl mem init success");
+        //ret = dclrtMemInit(0); //Non-Cached
+        //if (DCL_SUCCESS != ret) {
+        //    DCL_APP_LOG(DCL_ERROR, "dcl mem init failed, errorCode = %d", static_cast<int32_t>(ret));
+        //    return -2;
+        //}
+        //DCL_APP_LOG(DCL_INFO, "dcl mem init success");
 
         /*ret = dclmpiInit();
         if (DCL_SUCCESS != ret) {
@@ -44,12 +45,12 @@ namespace dcl {
     }
 
     static int deviceFinalize() {
-        dclError ret = dclrtMemDeinit();
-        if (DCL_SUCCESS != ret) {
-            DCL_APP_LOG(DCL_ERROR, "memory de-init failed, errorCode = %d", static_cast<int32_t>(ret));
-            return -2;
-        }
-        DCL_APP_LOG(DCL_INFO, "memory de-init done");
+        //dclError ret = dclrtMemDeinit();
+        //if (DCL_SUCCESS != ret) {
+        //    DCL_APP_LOG(DCL_ERROR, "memory de-init failed, errorCode = %d", static_cast<int32_t>(ret));
+        //    return -2;
+        //}
+        //DCL_APP_LOG(DCL_INFO, "memory de-init done");
 
         /*ret = dclmpiExit();
         if (DCL_SUCCESS != ret) {
@@ -57,7 +58,7 @@ namespace dcl {
             return -3;
         }*/
 
-        ret = dclFinalize();
+        dclError ret = dclFinalize();
         if (DCL_SUCCESS != ret) {
             DCL_APP_LOG(DCL_ERROR, "finalize dcl failed, errorCode = %d", static_cast<int32_t>(ret));
             return -1;

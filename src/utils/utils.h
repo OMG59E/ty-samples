@@ -77,7 +77,7 @@ static dcl::Mat cvMatToDclMat(const cv::Mat& cvMat) {
     dclMat.width = cvMat.cols;
     dclMat.original_height = cvMat.rows;
     dclMat.original_width = cvMat.cols;
-    dclMat.pixelFormat = DCL_PIXEL_FORMAT_BGR_888;
+    dclMat.pixelFormat = DCL_PIXEL_FORMAT_BGR_888_PACKED;
     dclMat.own = false;
     return dclMat;
 }

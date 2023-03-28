@@ -6,8 +6,11 @@
 #define DCL_WRAPPER_BASE_TYPE_H
 
 #include "dcl.h"
+#include "dcl_memory.h"
 #include "utils/macro.h"
-#include "opencv2/opencv.hpp"
+#include "opencv2/core/core.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/imgcodecs/imgcodecs.hpp"
 
 #include <string>
 #include <vector>
@@ -21,7 +24,7 @@ namespace dcl {
         int height{0};  // 16 pixel align
         int width{0};   // 16 pixel align
         bool own{false};
-        pixelFormat_t pixelFormat{DCL_PIXEL_FORMAT_BGR_888};
+        pixelFormat_t pixelFormat{DCL_PIXEL_FORMAT_BGR_888_PACKED};
 
         int original_height{0};
         int original_width{0};
@@ -44,8 +47,8 @@ namespace dcl {
             original_width = _width;
             pixelFormat = _pixelFormat;
             switch (pixelFormat) {
-                case DCL_PIXEL_FORMAT_BGR_888:
-                case DCL_PIXEL_FORMAT_RGB_888:
+                case DCL_PIXEL_FORMAT_BGR_888_PACKED:
+                case DCL_PIXEL_FORMAT_RGB_888_PACKED:
                 case DCL_PIXEL_FORMAT_BGR_888_PLANAR:
                 case DCL_PIXEL_FORMAT_RGB_888_PLANAR:
                 case DCL_PIXEL_FORMAT_YUV_SEMIPLANAR_420:
@@ -87,8 +90,8 @@ namespace dcl {
 
         size_t size() const {
             switch (pixelFormat) {
-                case DCL_PIXEL_FORMAT_BGR_888:
-                case DCL_PIXEL_FORMAT_RGB_888:
+                case DCL_PIXEL_FORMAT_BGR_888_PACKED:
+                case DCL_PIXEL_FORMAT_RGB_888_PACKED:
                 case DCL_PIXEL_FORMAT_BGR_888_PLANAR:
                 case DCL_PIXEL_FORMAT_RGB_888_PLANAR:
                 case DCL_PIXEL_FORMAT_YUV_400:  // gray

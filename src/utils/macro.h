@@ -6,6 +6,7 @@
 #define DCL_WRAPPER_MACRO_H
 
 #include "dcl.h"
+#include "dcl_memory.h"
 
 #define DCLMDL_DESC_FREE(ptr)              \
 do {                                       \

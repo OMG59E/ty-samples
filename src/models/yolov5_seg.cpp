@@ -5,7 +5,6 @@
 
 #include "yolov5_seg.h"
 #include "utils/nms.h"
-#include "opencv2/opencv.hpp"
 
 namespace dcl {
     int YoloV5Seg::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {

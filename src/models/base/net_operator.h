@@ -33,7 +33,7 @@ namespace dcl {
         int original_height{0};
         int original_width{0};
         int channels{0};
-        pixelFormat_t pixelFormat{DCL_PIXEL_FORMAT_BGR_888};
+        pixelFormat_t pixelFormat{DCL_PIXEL_FORMAT_BGR_888_PACKED};
 
         int aippIdx{-1};
         void *aippData{nullptr};

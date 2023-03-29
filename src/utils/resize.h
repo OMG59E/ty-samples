@@ -11,13 +11,66 @@
 #include "base_type.h"
 
 namespace dcl {
-    static int resize(unsigned char *in_data, int channels, int in_h, int in_w,
-                      unsigned char *out_data, int out_h, int out_w, int mode) {
-        float scale_x = float(in_w) / out_w;
-        float scale_y = float(in_h) / out_h;
+    typedef enum {
+        NONE = 0,
+        LEFT_TOP,
+        CENTER
+    } paddingType_t;
+
+    static int resizeCvtPaddingOp(const unsigned char *in_data, int channels, int in_h, int in_w,
+                                  unsigned char *out_data, int out_h, int out_w, colorSpace_t colorSpace,
+                                  paddingType_t paddingType = NONE, unsigned char paddingValue = 114) {
+
+        float scale_x, scale_y;
+        int offset_w, offset_h;
+        int target_w, target_h;
+        if (NONE == paddingType) {
+            target_w = out_w;
+            target_h = out_h;
+            scale_x = float(in_w) / target_w;
+            scale_y = float(in_h) / target_h;
+            offset_w = 0;
+            offset_h = 0;
+        } else if (LEFT_TOP == paddingType) {
+            if (in_w > in_h) {
+                target_w = out_w;
+                scale_x = float(in_w) / target_w;
+                scale_y = scale_x;  // float(in_h) / target_h;
+                target_h = int(in_h / scale_y);
+            } else {
+                target_h = out_h;
+                scale_y = float(in_h) / target_h;
+                scale_x = scale_y;
+                target_w = int(in_w / scale_x);
+            }
+            offset_w = 0;
+            offset_h = 0;
+            memset(out_data, paddingValue, out_w * out_h * channels);
+        } else if (CENTER == paddingType) {
+            if (in_w > in_h) {
+                target_w = out_w;
+                scale_x = float(in_w) / target_w;
+                scale_y = scale_x;
+                target_h = int(in_h / scale_y);
+                offset_w = 0;
+                offset_h = (out_h - target_h) / 2;
+            } else {
+                target_h = out_h;
+                scale_y = float(in_h) / target_h;
+                scale_x = scale_y;
+                target_w = int(in_w / scale_x);
+                offset_w = (out_w - target_w) / 2;
+                offset_h = 0;
+            }
+            memset(out_data, paddingValue, out_w * out_h * channels);
+        } else {
+            DCL_APP_LOG(DCL_ERROR, "Not support padding type: %d", paddingType);
+            return -1;
+        }
+
         for (int dc = 0; dc < channels; ++dc) {
-            for (int dh = 0; dh < out_h; ++dh) {
-                for (int dw = 0; dw < out_w; ++dw) {
+            for (int dh = 0; dh < target_h; ++dh) {
+                for (int dw = 0; dw < target_w; ++dw) {
                     float fx = (dw + 0.5f) * scale_x - 0.5f;
                     float fy = (dh + 0.5f) * scale_y - 0.5f;
                     int sx = int(floor(fx));
@@ -45,7 +98,6 @@ namespace dcl {
                         sy = in_h - 2;
                     }
 
-
                     float cbufx_x = 1.0f - fx;
                     float cbufx_y = fx;
 
@@ -60,18 +112,16 @@ namespace dcl {
                     float val = cbufx_x * cbufy_x * v00 + cbufx_x * cbufy_y * v01 + cbufx_y * cbufy_x * v10 +
                                 cbufx_y * cbufy_y * v11;
 
-                    if (IMAGE_COLOR_BGR888_TO_RGB888_PLANAR == mode) {
-                        // hwc -> chw  + BGR -> RGB
-                        out_data[(2 - dc) * out_h * out_w + dh * out_w + dw] = round(val);
-                    } else if (IMAGE_COLOR_BGR888_TO_BGR888_PLANAR == mode) {
-                        // hwc -> chw
-                        out_data[dc * out_h * out_w + dh * out_w + dw] = round(val);
-                    } else if (IMAGE_COLOR_BGR888_TO_BGR888 == mode) {
-                        out_data[dh * out_w * channels + dw * channels + dc] = round(val);
-                    } else if (IMAGE_COLOR_BGR888_TO_RGB888 == mode) {
-                        out_data[dh * out_w * channels + dw * channels + (2 - dc)] = round(val);
+                    if (IMAGE_COLOR_BGR888_TO_RGB888_PLANAR == colorSpace) {
+                        out_data[(2 - dc) * out_h * out_w + (dh + offset_h) * out_w + (dw + offset_w)] = round(val);
+                    } else if (IMAGE_COLOR_BGR888_TO_BGR888_PLANAR == colorSpace) {
+                        out_data[dc * out_h * out_w + (dh + offset_h) * out_w + (dw + offset_w)] = round(val);
+                    } else if (IMAGE_COLOR_BGR888_TO_BGR888 == colorSpace) {
+                        out_data[(dh + offset_h) * out_w * channels + (dw + offset_w) * channels + dc] = round(val);
+                    } else if (IMAGE_COLOR_BGR888_TO_RGB888 == colorSpace) {
+                        out_data[(dh + offset_h) * out_w * channels + (dw + offset_w) * channels + (2 - dc)] = round(val);
                     } else {
-                        DCL_APP_LOG(DCL_ERROR, "Not support mode: %d", mode);
+                        DCL_APP_LOG(DCL_ERROR, "Not support color space: %d", colorSpace);
                         return -1;
                     }
                 }

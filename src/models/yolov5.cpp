@@ -19,8 +19,9 @@ namespace dcl {
         for (int n=0; n < images.size(); ++n) {
             if (!vInputs[n].hasAipp()) {  // not aipp, manual preprocess
                 // resize + hwc2chw + BGR2RGB
-                return resize(images[n].data, images[n].c(), images[n].h(), images[n].w(),
-                              static_cast<unsigned char*>(vInputs[n].data), vInputs[n].h(), vInputs[n].w(), IMAGE_COLOR_BGR888_TO_RGB888_PLANAR);
+                return resizeCvtPaddingOp(images[n].data, images[n].c(), images[n].h(), images[n].w(),
+                                          static_cast<unsigned char*>(vInputs[n].data), vInputs[n].h(), vInputs[n].w(),
+                                          IMAGE_COLOR_BGR888_TO_RGB888_PLANAR, CENTER, 114);
             } else { //  AIPP not support BGR2RGB
                 dcl::Mat img;
                 img.data = static_cast<unsigned char*>(vInputs[n].data);

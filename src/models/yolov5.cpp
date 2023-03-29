@@ -17,22 +17,14 @@ namespace dcl {
         }
         std::vector<input_t>& vInputs = net_.getInputs();
         for (int n=0; n < images.size(); ++n) {
-            if (!vInputs[n].hasAipp()) {  // not aipp, manual preprocess
-                // resize + hwc2chw + BGR2RGB
-                return resize(images[n].data, images[n].c(), images[n].h(), images[n].w(),
-                              static_cast<unsigned char*>(vInputs[n].data), vInputs[n].h(), vInputs[n].w(),
-                              IMAGE_COLOR_BGR888_TO_RGB888_PLANAR, CENTER, 114);
-            } else { //  AIPP not support BGR2RGB
-                dcl::Mat img;
-                img.data = static_cast<unsigned char*>(vInputs[n].data);
-                img.channels = images[n].channels;
-                img.height = images[n].height;
-                img.width = images[n].width;
-                img.pixelFormat = DCL_PIXEL_FORMAT_RGB_888_PLANAR;
-                dcl::cvtColor(images[n], img, IMAGE_COLOR_BGR888_TO_RGB888_PLANAR);  // hwc -> chw and BGR -> RGB
-                // update input info with aipp
-                vInputs[n].update(img.c(), img.h(), img.w(), img.pixelFormat);
-            }
+            dcl::Mat img;
+            img.data = static_cast<unsigned char *>(vInputs[n].data);
+            img.phyaddr = vInputs[n].phyaddr;
+            img.channels = vInputs[n].c();
+            img.height = vInputs[n].h();
+            img.width = vInputs[n].w();
+            img.pixelFormat = DCL_PIXEL_FORMAT_RGB_888_PLANAR;
+            dclResizeCvtPaddingOp(images[n], img, CENTER, 114);
         }
         return 0;
     }

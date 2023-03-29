@@ -20,6 +20,7 @@ namespace dcl {
 
     struct Mat {
         unsigned char *data{nullptr};
+        uint64_t phyaddr{0};
         int channels{0};
         int height{0};  // 16 pixel align
         int width{0};   // 16 pixel align
@@ -64,7 +65,8 @@ namespace dcl {
             }
 
             own = true;
-            dclError ret = dclrtMalloc((void **) &data, size(), DCL_MEM_MALLOC_NORMAL_ONLY);
+            //dclError ret = dclrtMalloc((void **) &data, size(), DCL_MEM_MALLOC_NORMAL_ONLY);
+            dclError ret = dclrtMallocEx((void **)&data, &phyaddr, size(), 16, DCL_MEM_MALLOC_NORMAL_ONLY);
             if (DCL_SUCCESS != ret) {
                 DCL_APP_LOG(DCL_ERROR, "dclrtMalloc failed, channels: %d height: %d width: %d",
                             channels, height, width);

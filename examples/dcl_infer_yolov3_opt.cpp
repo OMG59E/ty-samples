@@ -34,7 +34,8 @@ int main(int argc, char** argv) {
         goto exit;
     }
 
-    img = cvMatToDclMat(src);
+    img.create(src.rows, src.cols, DCL_PIXEL_FORMAT_BGR_888_PACKED);
+    memcpy(img.data, src.data, img.size());
 
     // load model
     if (0 != model.load(binFile)) {
@@ -56,14 +57,15 @@ int main(int argc, char** argv) {
     DCL_APP_LOG(DCL_INFO, "Found object num: %d", detections.size());
 
     for (const auto& detection : detections) {
-        dcl::rectangle(img, dcl::Point(detection.box.x1, detection.box.y1),
-                       dcl::Point(detection.box.x2, detection.box.y2), dcl::Color(0, 0, 255), 3);
+        cv::rectangle(src, cv::Point(detection.box.x1, detection.box.y1),
+                      cv::Point(detection.box.x2, detection.box.y2), cv::Scalar(0, 0, 255), 2);
     }
 
     cv::imwrite(resFile, src);
 
 exit:
     src.release();
+    img.free();
     // sdk release
     dcl::deviceFinalize();
     return 0;

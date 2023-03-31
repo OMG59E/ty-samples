@@ -5,6 +5,7 @@
 
 #include "yolov5_seg.h"
 #include "utils/nms.h"
+#include "utils/resize.h"
 #include "opencv2/opencv.hpp"
 
 namespace dcl {
@@ -55,15 +56,10 @@ namespace dcl {
             float cy = tensor.data[dn * step + 1];
 
             // scale_coords
-            // int x1 = int((cx - w * 0.5f - pad_w) / gain);
-            // int y1 = int((cy - h * 0.5f - pad_h) / gain);
-            // int x2 = int((cx + w * 0.5f - pad_w) / gain);
-            // int y2 = int((cy + h * 0.5f - pad_h) / gain);
-
-            float x1 = cx - w * 0.5f;
-            float y1 = cy - h * 0.5f;
-            float x2 = cx + w * 0.5f;
-            float y2 = cy + h * 0.5f;
+            int x1 = int((cx - w * 0.5f - pad_w) / gain);
+            int y1 = int((cy - h * 0.5f - pad_h) / gain);
+            int x2 = int((cx + w * 0.5f - pad_w) / gain);
+            int y2 = int((cy + h * 0.5f - pad_h) / gain);
 
             // clip
             x1 = x1 < 0 ? 0 : x1;
@@ -109,40 +105,91 @@ namespace dcl {
         const int W = protos.w();
         const float scale = (float) W / input_sizes_[0];
 
-        uint8_t mask[H*W];
-        float prob;
+        uint8_t mask[16 * H * W];
+        float prob[H * W];
+        float p;
+        const float conf_inv = -logf((1.0f / 0.5f) - 1.0f);
         for (auto &detection: detections) {
-            memset(mask, 0, H*W);
-            int x1 = int(detection.box.x1 * scale);
-            int y1 = int(detection.box.y1 * scale);
-            int x2 = int(detection.box.x2 * scale);
-            int y2 = int(detection.box.y2 * scale);
+            memset(prob, 0, H*W*sizeof(float));
+            memset(mask, 0, 16*H*W);
+            int x1 = int((detection.box.x1 * gain + pad_w) * scale);
+            int y1 = int((detection.box.y1 * gain + pad_h) * scale);
+            int x2 = int((detection.box.x2 * gain + pad_w) * scale);
+            int y2 = int((detection.box.y2 * gain + pad_h) * scale);
 
             for (int dh = y1; dh <= y2; ++dh) {
                 for (int dw = x1; dw <= x2; ++dw) {
-                    prob = 0;
+                    p = 0;
                     for (int dc = 0; dc < C; ++dc)
-                        prob += (detection.mask[dc] * protos.data[dc * H * W + dh * W + dw]);
-                    prob = 1.0f / (1.0f + expf(-prob));
-                    if (prob < 0.5f)
-                        continue;
-                    mask[dh * W + dw] = 255;
+                        p += (detection.mask[dc] * protos.data[dc * H * W + dh * W + dw]);
+                    // prob[dh * W + dw] = 1.0f / (1.0f + expf(-p));
+                    prob[dh * W + dw] = p;
                 }
             }
 
-            cv::Mat cvMask(cv::Size(W, H), CV_8UC1, mask);
+            x1 /= scale;
+            y1 /= scale;
+            x2 /= scale;
+            y2 /= scale;
+
+            float scale_x = scale;
+            float scale_y = scale;
+            for (int dh = y1; dh <= y2 ; ++dh) {
+                for (int dw = x1; dw <= x2; ++dw) {
+                    float fx = (dw + 0.5f) * scale_x - 0.5f;
+                    float fy = (dh + 0.5f) * scale_y - 0.5f;
+                    int sx = int(floor(fx));
+                    int sy = int(floor(fy));
+                    fx -= sx;
+                    fy -= sy;
+
+                    if (sx < 0) {
+                        fx = 0;
+                        sx = 0;
+                    }
+
+                    if (sx >= W - 1) {
+                        fx = 1;
+                        sx = W - 2;
+                    }
+
+                    if (sy < 0) {
+                        fy = 0;
+                        sy = 0;
+                    }
+
+                    if (sy >= H - 1) {
+                        fy = 1;
+                        sy = H - 2;
+                    }
+
+                    float cbufx_x = 1.0f - fx;
+                    float cbufx_y = fx;
+
+                    float cbufy_x = 1.0f - fy;
+                    float cbufy_y = fy;
+
+                    float v00 = prob[(sy + 0) * W + (sx + 0)];
+                    float v01 = prob[(sy + 1) * W + (sx + 0)];
+                    float v10 = prob[(sy + 0) * W + (sx + 1)];
+                    float v11 = prob[(sy + 1) * W + (sx + 1)];
+
+                    float val = cbufx_x * cbufy_x * v00 + cbufx_x * cbufy_y * v01 + cbufx_y * cbufy_x * v10 + cbufx_y * cbufy_y * v11;
+                    if (val < conf_inv)
+                        continue;
+                    mask[dh * (4 * W) + dw] = 255;
+                }
+            }
+
+            cv::Mat cvMask(cv::Size(4*W, 4*H), CV_8UC1, mask);
             detection.contours.clear();
             cv::findContours(cvMask, detection.contours, cv::noArray(), cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
 
             // 映射轮廓坐标回原图
-            detection.box.x1 = int((detection.box.x1 - pad_w) / gain);
-            detection.box.y1 = int((detection.box.y1 - pad_h) / gain);
-            detection.box.x2 = int((detection.box.x2 - pad_w) / gain);
-            detection.box.y2 = int((detection.box.y2 - pad_h) / gain);
             for (auto & contour : detection.contours) {
                 for (auto& pt : contour) {
-                    pt.x = (pt.x / scale - pad_w) / gain;
-                    pt.y = (pt.y / scale - pad_h) / gain;
+                    pt.x = (pt.x - pad_w) / gain;
+                    pt.y = (pt.y - pad_h) / gain;
                 }
             }
         }

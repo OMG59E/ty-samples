@@ -16,8 +16,8 @@ namespace dcl {
             return -1;
         }
 
-        if (2 != vOutputTensors_.size()) {
-            DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 2", vOutputTensors_.size());
+        if (3 != vOutputTensors_.size()) {
+            DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 3", vOutputTensors_.size());
             return -2;
         }
 
@@ -26,6 +26,7 @@ namespace dcl {
         float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
         const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 25200, 117
+        const dcl::Tensor &conf_tensor = vOutputTensors_[2];  // 1 1 8400
 
         const int num_anchors = tensor.d[2];
         const int step = num_classes_ + 4 + nm_;
@@ -42,6 +43,10 @@ namespace dcl {
 
         detections.clear();
         for (int dn = 0; dn < num_anchors; ++dn) {
+            float conf = conf_tensor.data[dn];
+            if (conf < conf_threshold_)
+                continue;
+
             int num_cls{-1};
             float max_conf{-1};
             for (int dc = 0; dc < num_classes_; ++dc) {  // [0-80)
@@ -51,8 +56,6 @@ namespace dcl {
                     max_conf = conf;
                 }
             }
-            if (max_conf < conf_threshold_)
-                continue;
 
             float w = tensor.data[2 * num_anchors + dn];
             float h = tensor.data[3 * num_anchors + dn];
@@ -118,7 +121,6 @@ namespace dcl {
                     prob_.data[dh * W + dw] = round(p * 255);
                 }
             }
-
             uint32_t chn = 0;
             dclVpcPicInfo sourcePic;
             sourcePic.picFormat = DCL_PIXEL_FORMAT_YUV_400;
@@ -185,7 +187,6 @@ namespace dcl {
                 usleep(1000000);
             }
         }
-
         prob.free();
         return 0;
     }

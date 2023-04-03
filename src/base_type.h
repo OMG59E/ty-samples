@@ -17,6 +17,7 @@ namespace dcl {
 
     struct Mat {
         unsigned char *data{nullptr};
+        uint64_t phyAddr{0};
         int channels{0};
         int height{0};  // 16 pixel align
         int width{0};   // 16 pixel align
@@ -53,6 +54,7 @@ namespace dcl {
                     channels = 3;
                     break;
                 case DCL_PIXEL_FORMAT_YUV_400:
+                case DCL_PIXEL_FORMAT_F32C1:
                     channels = 1;
                     break;
                 default:
@@ -61,9 +63,9 @@ namespace dcl {
             }
 
             own = true;
-            dclError ret = dclrtMalloc((void **) &data, size(), DCL_MEM_MALLOC_NORMAL_ONLY);
+            dclError ret = dclrtMallocEx((void**)&data, &phyAddr, size(), 16, DCL_MEM_MALLOC_NORMAL_ONLY);
             if (DCL_SUCCESS != ret) {
-                DCL_APP_LOG(DCL_ERROR, "dclrtMalloc failed, channels: %d height: %d width: %d",
+                DCL_APP_LOG(DCL_ERROR, "dclrtMallocEx failed, channels: %d height: %d width: %d",
                             channels, height, width);
                 return -3;
             }
@@ -96,6 +98,8 @@ namespace dcl {
                 case DCL_PIXEL_FORMAT_YUV_SEMIPLANAR_420:
                 case DCL_PIXEL_FORMAT_YVU_SEMIPLANAR_420:
                     return height * width * channels / 2;
+                case DCL_PIXEL_FORMAT_F32C1:
+                    return height * width * channels * sizeof(float);
                 default:
                     DCL_APP_LOG(DCL_ERROR, "Not support pixel_format: %d", pixelFormat);
                     return 0;
@@ -203,6 +207,7 @@ namespace dcl {
         Point pts[5]{};  // 5 landmark
         Point kpts[17]{}; // 17-keypoints
         float mask[32]{};
+        dcl::Mat prob;
         std::vector<contour_t> contours;
     } detection_t;
 

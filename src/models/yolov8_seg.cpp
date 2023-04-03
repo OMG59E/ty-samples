@@ -3,8 +3,10 @@
 //
 
 #include <cassert>
+#include <unistd.h>
 #include "yolov8_seg.h"
 #include "utils/nms.h"
+#include "dcl_mpi_vpc.h"
 #include "opencv2/opencv.hpp"
 
 namespace dcl {
@@ -98,13 +100,10 @@ namespace dcl {
         const int W = protos.w();
         const float scale = (float) W / input_sizes_[0];
 
-        uint8_t mask[16 * H * W];
-        float prob[H * W];
-        float p;
-        const float conf_inv = -logf((1.0f / 0.5f) - 1.0f);
+        dcl::Mat prob(images[0].h(), images[0].w(), DCL_PIXEL_FORMAT_YUV_400);
         for (auto &detection: detections) {
-            memset(prob, 0, H*W*sizeof(float));
-            memset(mask, 0, 16*H*W);
+            memset(prob_.data, 0, prob_.size());
+            memset(prob.data, 0, prob.size());
             int x1 = int((detection.box.x1 * gain + pad_w) * scale);
             int y1 = int((detection.box.y1 * gain + pad_h) * scale);
             int x2 = int((detection.box.x2 * gain + pad_w) * scale);
@@ -112,81 +111,82 @@ namespace dcl {
 
             for (int dh = y1; dh <= y2; ++dh) {
                 for (int dw = x1; dw <= x2; ++dw) {
-                    p = 0;
+                    float p = 0;
                     for (int dc = 0; dc < C; ++dc)
                         p += (detection.mask[dc] * protos.data[dc * H * W + dh * W + dw]);
-                    // prob[dh * W + dw] = 1.0f / (1.0f + expf(-p));
-                    prob[dh * W + dw] = p;
+                    p = 1.0f / (1.0f + expf(-p));
+                    prob_.data[dh * W + dw] = round(p * 255);
                 }
             }
 
-            x1 /= scale;
-            y1 /= scale;
-            x2 /= scale;
-            y2 /= scale;
+            uint32_t chn = 0;
+            dclVpcPicInfo sourcePic;
+            sourcePic.picFormat = DCL_PIXEL_FORMAT_YUV_400;
+            sourcePic.picAddr = prob_.data;
+            sourcePic.phyAddr = prob_.phyAddr;
+            sourcePic.picBufferSize = prob_.size();
+            sourcePic.picHeight = prob_.h();
+            sourcePic.picWidth = prob_.w();
+            sourcePic.picHeightStride = prob_.h();
+            sourcePic.picWidthStride = prob_.w();
 
-            float scale_x = scale;
-            float scale_y = scale;
-            for (int dh = y1; dh <= y2 ; ++dh) {
-                for (int dw = x1; dw <= x2; ++dw) {
-                    float fx = (dw + 0.5f) * scale_x - 0.5f;
-                    float fy = (dh + 0.5f) * scale_y - 0.5f;
-                    int sx = int(floor(fx));
-                    int sy = int(floor(fy));
-                    fx -= sx;
-                    fy -= sy;
+            dclVpcCropResizeInfo transInfo;
+            transInfo.dstPic.picFormat = DCL_PIXEL_FORMAT_YUV_400;
+            transInfo.dstPic.picAddr = prob.data;
+            transInfo.dstPic.phyAddr = prob.phyAddr;
+            transInfo.dstPic.picBufferSize = prob.size();
+            transInfo.dstPic.picHeight = prob.h();
+            transInfo.dstPic.picWidth = prob.w();
+            transInfo.dstPic.picHeightStride = prob.h();
+            transInfo.dstPic.picWidthStride = prob.w();
+            transInfo.crop.roi.x = images[0].w() > images[0].h() ? 0 : (W - int(gain * scale * images[0].w())) / 2;
+            transInfo.crop.roi.y = images[0].w() > images[0].h() ? (H - int(gain * scale * images[0].h())) / 2 : 0;
+            transInfo.crop.roi.width = images[0].w() > images[0].h() ? W : int(gain * scale * images[0].w());
+            transInfo.crop.roi.height = images[0].w() > images[0].h() ? int(gain * scale * images[0].h()) : H;
+            transInfo.resize.width = prob.w();
+            transInfo.resize.height = prob.h();
+            transInfo.resize.interpolation = 0;
 
-                    if (sx < 0) {
-                        fx = 0;
-                        sx = 0;
-                    }
-
-                    if (sx >= W - 1) {
-                        fx = 1;
-                        sx = W - 2;
-                    }
-
-                    if (sy < 0) {
-                        fy = 0;
-                        sy = 0;
-                    }
-
-                    if (sy >= H - 1) {
-                        fy = 1;
-                        sy = H - 2;
-                    }
-
-                    float cbufx_x = 1.0f - fx;
-                    float cbufx_y = fx;
-
-                    float cbufy_x = 1.0f - fy;
-                    float cbufy_y = fy;
-
-                    float v00 = prob[(sy + 0) * W + (sx + 0)];
-                    float v01 = prob[(sy + 1) * W + (sx + 0)];
-                    float v10 = prob[(sy + 0) * W + (sx + 1)];
-                    float v11 = prob[(sy + 1) * W + (sx + 1)];
-
-                    float val = cbufx_x * cbufy_x * v00 + cbufx_x * cbufy_y * v01 + cbufx_y * cbufy_x * v10 + cbufx_y * cbufy_y * v11;
-                    if (val < conf_inv)
-                        continue;
-                    mask[dh * (4 * W) + dw] = 255;
-                }
+            uint32_t count = 1;
+            uint64_t taskId;
+            int32_t milliSec = -1;
+            dclError e = dclmpiVpcCropResize(chn, &sourcePic, &transInfo, count, &taskId, milliSec);
+            if (e != DCL_SUCCESS) {
+                DCL_APP_LOG(DCL_ERROR, "dclmpiVpcCropResize fail, error code:%d", e);
+                return -1;
+            }
+            while (dclmpiVpcGetProcessResult(chn, taskId, milliSec) != DCL_SUCCESS) {
+                usleep(1000000);
             }
 
-            cv::Mat cvMask(cv::Size(4*W, 4*H), CV_8UC1, mask);
-            detection.contours.clear();
-            cv::findContours(cvMask, detection.contours, cv::noArray(), cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
+            detection.prob.create(detection.box.h(), detection.box.w(), DCL_PIXEL_FORMAT_YUV_400);
 
-            // 映射轮廓坐标回原图
-            for (auto & contour : detection.contours) {
-                for (auto& pt : contour) {
-                    pt.x = (pt.x - pad_w) / gain;
-                    pt.y = (pt.y - pad_h) / gain;
-                }
+            dclVpcCropInfo cropInfo;
+            cropInfo.dstPic.picFormat = DCL_PIXEL_FORMAT_YUV_400;
+            cropInfo.dstPic.picAddr = detection.prob.data;
+            cropInfo.dstPic.phyAddr = detection.prob.phyAddr;
+            cropInfo.dstPic.picBufferSize = detection.prob.size();
+            cropInfo.dstPic.picHeight = detection.prob.h();
+            cropInfo.dstPic.picWidth = detection.prob.w();
+            cropInfo.dstPic.picHeightStride = detection.prob.h();
+            cropInfo.dstPic.picWidthStride = detection.prob.w();
+            cropInfo.crop.roi.x = detection.box.x1;
+            cropInfo.crop.roi.y = detection.box.y1;
+            cropInfo.crop.roi.width = detection.box.w();
+            cropInfo.crop.roi.height = detection.box.h();
+
+            e = dclmpiVpcCrop(chn, &(transInfo.dstPic), &cropInfo, count, &taskId, milliSec);
+            if (e != DCL_SUCCESS) {
+                DCL_APP_LOG(DCL_ERROR, "dclmpiVpcCrop fail, error code:%d", e);
+                return -1;
+            }
+
+            while (dclmpiVpcGetProcessResult(chn, taskId, milliSec) != DCL_SUCCESS) {
+                usleep(1000000);
             }
         }
 
+        prob.free();
         return 0;
     }
 }

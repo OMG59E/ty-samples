@@ -35,9 +35,7 @@ int main(int argc, char** argv) {
 
     dcl::YoloV5Seg model;
     std::vector<dcl::detection_t> detections;
-    dcl::Mat img, mask;
-
-    // const float conf_inv = round(-logf((1.0f / 0.5f) - 1.0f) * 255);
+    dcl::Mat img;
 
     cv::Mat src = cv::imread(imgPath);
     if (src.empty()) {
@@ -72,7 +70,6 @@ int main(int argc, char** argv) {
         cv::rectangle(src, cv::Point(detection.box.x1, detection.box.y1),
                        cv::Point(detection.box.x2, detection.box.y2), color, 2);
 
-        // cv::fillPoly(mask, detection.contours, cv::Scalar(255));  // 填充mask
         // add
         for (int h=detection.box.y1; h<=detection.box.y2; ++h) {
             for (int w=detection.box.x1; w<=detection.box.x2; ++w) {
@@ -83,14 +80,12 @@ int main(int argc, char** argv) {
                 }
             }
         }
-        // cv::drawContours(src, detection.contours, -1, color, 2);
         detection.prob.free();
     }
     cv::imwrite(resFile, src);
 
 exit:
     src.release();
-    mask.free();
     // sdk release
     dcl::deviceFinalize();
     return 0;

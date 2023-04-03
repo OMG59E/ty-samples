@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
         // add
         for (int h=detection.box.y1; h<=detection.box.y2; ++h) {
             for (int w=detection.box.x1; w<=detection.box.x2; ++w) {
-                if (detection.prob.data[(h - detection.box.y1) * detection.prob.w() + (w - detection.box.x1)] >= 50) {
+                if (detection.prob.data[(h - detection.box.y1) * detection.prob.w() + (w - detection.box.x1)] >= 127.5) {
                     src.data[h * src.cols * 3 + w * 3 + 0] = src.data[h * src.cols * 3 + w * 3 + 0] * 0.5f + color[0] * 0.5f;
                     src.data[h * src.cols * 3 + w * 3 + 1] = src.data[h * src.cols * 3 + w * 3 + 1] * 0.5f + color[1] * 0.5f;
                     src.data[h * src.cols * 3 + w * 3 + 2] = src.data[h * src.cols * 3 + w * 3 + 2] * 0.5f + color[2] * 0.5f;

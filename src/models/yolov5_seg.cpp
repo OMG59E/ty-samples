@@ -145,7 +145,7 @@ namespace dcl {
             sourcePic.picHeightStride = prob_.h();
             sourcePic.picWidthStride = prob_.w();
 
-            dclVpcResizeInfo transInfo;
+            dclVpcCropResizeInfo transInfo;
             transInfo.dstPic.picFormat = DCL_PIXEL_FORMAT_YUV_400;
             transInfo.dstPic.picAddr = prob.data;
             transInfo.dstPic.phyAddr = prob.phyAddr;
@@ -154,6 +154,10 @@ namespace dcl {
             transInfo.dstPic.picWidth = prob.w();
             transInfo.dstPic.picHeightStride = prob.h();
             transInfo.dstPic.picWidthStride = prob.w();
+            transInfo.crop.roi.x = images[0].w() > images[0].h() ? 0 : (W - int(gain * scale * images[0].w())) / 2;
+            transInfo.crop.roi.y = images[0].w() > images[0].h() ? (H - int(gain * scale * images[0].h())) / 2 : 0;
+            transInfo.crop.roi.width = images[0].w() > images[0].h() ? W : int(gain * scale * images[0].w());
+            transInfo.crop.roi.height = images[0].w() > images[0].h() ? int(gain * scale * images[0].h()) : H;
             transInfo.resize.width = prob.w();
             transInfo.resize.height = prob.h();
             transInfo.resize.interpolation = 0;
@@ -161,7 +165,7 @@ namespace dcl {
             uint32_t count = 1;
             uint64_t taskId;
             int32_t milliSec = -1;
-            dclError e = dclmpiVpcResize(chn, &sourcePic, &transInfo, count, &taskId, milliSec);
+            dclError e = dclmpiVpcCropResize(chn, &sourcePic, &transInfo, count, &taskId, milliSec);
             if (e != DCL_SUCCESS) {
                 DCL_APP_LOG(DCL_ERROR, "dclmpiVpcCropResize fail, error code:%d", e);
                 return -1;

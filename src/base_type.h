@@ -111,7 +111,7 @@ namespace dcl {
     typedef dclDataType dclDataType_t;
 
     struct Tensor {
-        float *data{nullptr};
+        void *data{nullptr};
         int nbDims{0};
         int d[8]{};
         dataLayout_t dataLayout{DCL_FORMAT_NCHW};

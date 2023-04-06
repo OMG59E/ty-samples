@@ -168,8 +168,8 @@ namespace dcl {
         vOutputTensors.resize(nbNumOutput_);
         for (int i = 0; i < nbNumOutput_; ++i) {
             dclDataBuffer *dataBuffer = dclmdlGetDatasetBuffer(outputDataset_, i);
-            void *data = dclGetDataBufferAddr(dataBuffer);
-            vOutputTensors[i].data = reinterpret_cast<float *>(data);
+            // void *data = dclGetDataBufferAddr(dataBuffer);
+            vOutputTensors[i].data = dclGetDataBufferAddr(dataBuffer);
             vOutputTensors[i].nbDims = int(vOutputDims_[i].dimCount);
             for (int j = 0; j < vOutputTensors[i].nbDims; ++j)
                 vOutputTensors[i].d[j] = int(vOutputDims_[i].dims[j]);
@@ -180,6 +180,8 @@ namespace dcl {
 
             } else if (DCL_FLOAT == datatype) {
                 // nothing
+            } else if (DCL_INT32 == datatype) {
+                vOutputTensors[i].dataType = DCL_INT32;
             } else {
                 DCL_APP_LOG(DCL_ERROR, "Not support data type %d", datatype);
                 return -5;

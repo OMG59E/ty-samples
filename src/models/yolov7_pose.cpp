@@ -22,6 +22,7 @@ int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vecto
     float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
     const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 25500, 57
+    auto* pred = (float*)(tensor.data);
 
     const int num_anchors = tensor.c();
     const int step = tensor.h(); // 57
@@ -30,18 +31,18 @@ int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vecto
 
     detections.clear();
     for (int dn=0; dn<num_anchors; ++dn) {
-        float conf = tensor.data[dn * step + 4] * tensor.data[dn * step + 5];  // obj_conf
+        float conf = pred[dn * step + 4] * pred[dn * step + 5];  // obj_conf
         if (conf < conf_threshold_)
             continue;
 
-        float w = tensor.data[dn * step + 2];
-        float h = tensor.data[dn * step + 3];
+        float w = pred[dn * step + 2];
+        float h = pred[dn * step + 3];
 
         if (w < min_wh_ || h < min_wh_ || w > max_wh_ || h > max_wh_)
             continue;
 
-        float cx = tensor.data[dn * step + 0];
-        float cy = tensor.data[dn * step + 1];
+        float cx = pred[dn * step + 0];
+        float cy = pred[dn * step + 1];
 
         // scale_coords
         int x1 = int((cx - w * 0.5f - pad_w) / gain);
@@ -63,9 +64,9 @@ int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vecto
         detection.cls = 0;
         detection.conf = conf; // obj_conf * cls_conf
         for (int k=0; k<num_keypoint_; ++k) {
-            detection.kpts[k].x = int((tensor.data[dn * step + k * 3 + 6] - pad_w) / gain);
-            detection.kpts[k].y = int((tensor.data[dn * step + k * 3 + 7] - pad_h) / gain);
-            detection.kpts[k].score = tensor.data[dn * step + k * 3 + 8];
+            detection.kpts[k].x = int((pred[dn * step + k * 3 + 6] - pad_w) / gain);
+            detection.kpts[k].y = int((pred[dn * step + k * 3 + 7] - pad_h) / gain);
+            detection.kpts[k].score = pred[dn * step + k * 3 + 8];
         }
         detections.emplace_back(detection);
     }

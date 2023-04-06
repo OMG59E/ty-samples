@@ -41,30 +41,23 @@ namespace dcl {
             return -4;
         }
 
+        auto* pred = (float*)(tensor.data);
+        auto* conf = (int32_t*)(conf_tensor.data);
         detections.clear();
         for (int dn = 0; dn < num_anchors; ++dn) {
-            float conf = conf_tensor.data[dn];
-            if (conf < conf_threshold_)
+            int max_idx = conf[dn];
+            float max_conf = pred[(max_idx + 4) * num_anchors + dn];
+            if (max_conf < conf_threshold_)
                 continue;
 
-            int num_cls{-1};
-            float max_conf{-1};
-            for (int dc = 0; dc < num_classes_; ++dc) {  // [0-80)
-                float conf = tensor.data[(4 + dc) * num_anchors + dn];
-                if (max_conf < conf) {
-                    num_cls = dc;
-                    max_conf = conf;
-                }
-            }
-
-            float w = tensor.data[2 * num_anchors + dn];
-            float h = tensor.data[3 * num_anchors + dn];
+            float w = pred[2 * num_anchors + dn];
+            float h = pred[3 * num_anchors + dn];
 
             if (w < min_wh_ || h < min_wh_ || w > max_wh_ || h > max_wh_)
                 continue;
 
-            float cx = tensor.data[0 * num_anchors + dn];
-            float cy = tensor.data[1 * num_anchors + dn];
+            float cx = pred[0 * num_anchors + dn];
+            float cy = pred[1 * num_anchors + dn];
 
             // scale_coords
             int x1 = int((cx - w * 0.5f - pad_w) / gain);
@@ -83,10 +76,10 @@ namespace dcl {
             detection.box.y1 = y1;
             detection.box.x2 = x2;
             detection.box.y2 = y2;
-            detection.cls = num_cls;
+            detection.cls = max_idx;
             detection.conf = max_conf;
             for (int m=0; m<nm_; ++m)
-                detection.mask[m] = tensor.data[(4 + num_classes_ + m) * num_anchors + dn];
+                detection.mask[m] = pred[(4 + num_classes_ + m) * num_anchors + dn];
             detections.emplace_back(detection);
         }
 
@@ -97,6 +90,7 @@ namespace dcl {
         non_max_suppression(detections, iou_threshold_);
 
         const dcl::Tensor &protos = vOutputTensors_[1];  // 1, 32, 160, 160
+        auto* proto = (float*)(protos.data);
 
         const int C = protos.c();
         const int H = protos.h();
@@ -116,7 +110,7 @@ namespace dcl {
                 for (int dw = x1; dw <= x2; ++dw) {
                     float p = 0;
                     for (int dc = 0; dc < C; ++dc)
-                        p += (detection.mask[dc] * protos.data[dc * H * W + dh * W + dw]);
+                        p += (detection.mask[dc] * proto[dc * H * W + dh * W + dw]);
                     p = 1.0f / (1.0f + expf(-p));
                     prob_.data[dh * W + dw] = round(p * 255);
                 }

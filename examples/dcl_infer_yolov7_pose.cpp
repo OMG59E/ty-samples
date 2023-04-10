@@ -1,7 +1,9 @@
 //
 // Created on 23-2-20.
 //
-
+#include "opencv2/core/core.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/imgcodecs/imgcodecs.hpp"
 #include "models/yolov7_pose.h"
 #include "utils/device.h"
 #include "utils/utils.h"

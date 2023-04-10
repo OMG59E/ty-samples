@@ -214,7 +214,7 @@ namespace dcl {
         picIn.picFormat = src.pixelFormat;
         picIn.picWidthStride = src.w();
         picIn.picHeightStride = src.h();
-        picIn.phyAddr = src.phyaddr;
+        picIn.phyAddr = src.phyAddr;
         picIn.virAddr = (uint64_t)(src.data);
         picIn.picBufferSize = src.size();
 
@@ -223,7 +223,7 @@ namespace dcl {
         info.dstPic.picFormat = dst.pixelFormat;
         info.dstPic.picWidthStride = dst.w();
         info.dstPic.picHeightStride = dst.h();
-        info.dstPic.phyAddr = dst.phyaddr;
+        info.dstPic.phyAddr = dst.phyAddr;
         info.dstPic.virAddr = (uint64_t)(dst.data);
         info.dstPic.picBufferSize = dst.size();
 

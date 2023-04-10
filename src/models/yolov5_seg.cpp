@@ -5,8 +5,7 @@
 #include <unistd.h>
 #include "yolov5_seg.h"
 #include "utils/nms.h"
-#include "dcl_mpi_vpc.h"
-#include "opencv2/opencv.hpp"
+#include "dcl_ive.h"
 
 namespace dcl {
     int YoloV5Seg::load(const std::string &modelPath) {
@@ -137,9 +136,9 @@ namespace dcl {
             }
 
             uint32_t chn = 0;
-            dclVpcPicInfo sourcePic;
+            dclIvePicInfo sourcePic;
             sourcePic.picFormat = DCL_PIXEL_FORMAT_YUV_400;
-            sourcePic.picAddr = prob_.data;
+            sourcePic.virAddr = (uint64_t)(prob_.data);
             sourcePic.phyAddr = prob_.phyAddr;
             sourcePic.picBufferSize = prob_.size();
             sourcePic.picHeight = prob_.h();
@@ -147,9 +146,9 @@ namespace dcl {
             sourcePic.picHeightStride = prob_.h();
             sourcePic.picWidthStride = prob_.w();
 
-            dclVpcCropResizeInfo transInfo;
+            dclIveCropResizeInfo transInfo;
             transInfo.dstPic.picFormat = DCL_PIXEL_FORMAT_YUV_400;
-            transInfo.dstPic.picAddr = prob.data;
+            transInfo.dstPic.virAddr = (uint64_t)(prob.data);
             transInfo.dstPic.phyAddr = prob.phyAddr;
             transInfo.dstPic.picBufferSize = prob.size();
             transInfo.dstPic.picHeight = prob.h();
@@ -167,20 +166,20 @@ namespace dcl {
             uint32_t count = 1;
             uint64_t taskId;
             int32_t milliSec = -1;
-            dclError e = dclmpiVpcCropResize(chn, &sourcePic, &transInfo, count, &taskId, milliSec);
+            dclError e = dcliveCropResize(chn, &sourcePic, &transInfo, count, &taskId, milliSec);
             if (e != DCL_SUCCESS) {
                 DCL_APP_LOG(DCL_ERROR, "dclmpiVpcCropResize fail, error code:%d", e);
                 return -1;
             }
-            while (dclmpiVpcGetProcessResult(chn, taskId, milliSec) != DCL_SUCCESS) {
+            while (dcliveGetProcessResult(chn, taskId, milliSec) != DCL_SUCCESS) {
                 usleep(1000000);
             }
 
             detection.prob.create(detection.box.h(), detection.box.w(), DCL_PIXEL_FORMAT_YUV_400);
 
-            dclVpcCropInfo cropInfo;
+            dclIveCropInfo cropInfo;
             cropInfo.dstPic.picFormat = DCL_PIXEL_FORMAT_YUV_400;
-            cropInfo.dstPic.picAddr = detection.prob.data;
+            cropInfo.dstPic.virAddr = (uint64_t)(detection.prob.data);
             cropInfo.dstPic.phyAddr = detection.prob.phyAddr;
             cropInfo.dstPic.picBufferSize = detection.prob.size();
             cropInfo.dstPic.picHeight = detection.prob.h();
@@ -192,13 +191,13 @@ namespace dcl {
             cropInfo.crop.roi.width = detection.box.w();
             cropInfo.crop.roi.height = detection.box.h();
 
-            e = dclmpiVpcCrop(chn, &(transInfo.dstPic), &cropInfo, count, &taskId, milliSec);
+            e = dcliveCrop(chn, &(transInfo.dstPic), &cropInfo, count, &taskId, milliSec);
             if (e != DCL_SUCCESS) {
                 DCL_APP_LOG(DCL_ERROR, "dclmpiVpcCrop fail, error code:%d", e);
                 return -1;
             }
 
-            while (dclmpiVpcGetProcessResult(chn, taskId, milliSec) != DCL_SUCCESS) {
+            while (dcliveGetProcessResult(chn, taskId, milliSec) != DCL_SUCCESS) {
                 usleep(1000000);
             }
         }

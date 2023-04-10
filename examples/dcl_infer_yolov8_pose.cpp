@@ -1,9 +1,9 @@
 //
 // Created by intellif on 23-4-10.
 //
-
-#include <opencv2/opencv.hpp>
-
+#include "opencv2/core/core.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/imgcodecs/imgcodecs.hpp"
 #include "models/yolov8_pose.h"
 #include "utils/device.h"
 #include "utils/utils.h"

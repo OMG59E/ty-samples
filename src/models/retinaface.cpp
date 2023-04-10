@@ -86,31 +86,35 @@ namespace dcl {
         const int width = images[0].original_width;
         const int target_size = std::max(height, width);
 
-        const dcl::Tensor &loc_data = vOutputTensors_[0];
-        const dcl::Tensor &conf_data = vOutputTensors_[1];
-        const dcl::Tensor &pts_data = vOutputTensors_[2];
+        const dcl::Tensor &loc_tensor = vOutputTensors_[0];
+        const dcl::Tensor &conf_tensor = vOutputTensors_[1];
+        const dcl::Tensor &pts_tensor = vOutputTensors_[2];
 
-        int bs = loc_data.n();
+        auto* loc_data = (float*)(loc_tensor.data);
+        auto* conf_data = (float*)(conf_tensor.data);
+        auto* pts_data = (float*)(pts_tensor.data);
+
+        int bs = loc_tensor.n();
         if (1 != bs) {
             DCL_APP_LOG(DCL_ERROR, "batch(%d) must be equal 1", bs);
             return -3;
         }
 
-        if (loc_data.c() != num_anchors_) {
-            DCL_APP_LOG(DCL_ERROR, "dim1(%d) must be equal num_anchors(%d)", loc_data.c(), num_anchors_);
+        if (loc_tensor.c() != num_anchors_) {
+            DCL_APP_LOG(DCL_ERROR, "dim1(%d) must be equal num_anchors(%d)", loc_tensor.c(), num_anchors_);
             return -4;
         }
 
         detections.clear();
         for (int i = 0; i < num_anchors_; ++i) {
-            float conf = conf_data.data[i * 2 + 1]; // face conf
+            float conf = conf_data[i * 2 + 1]; // face conf
             if (conf < conf_threshold_)
                 continue;
 
-            float cx = prior_data_[i * 4 + 0] + loc_data.data[i * 4 + 0] * variances_[0] * prior_data_[i * 4 + 2];
-            float cy = prior_data_[i * 4 + 1] + loc_data.data[i * 4 + 1] * variances_[0] * prior_data_[i * 4 + 3];
-            float w = prior_data_[i * 4 + 2] * expf(loc_data.data[i * 4 + 2] * variances_[1]);
-            float h = prior_data_[i * 4 + 3] * expf(loc_data.data[i * 4 + 3] * variances_[1]);
+            float cx = prior_data_[i * 4 + 0] + loc_data[i * 4 + 0] * variances_[0] * prior_data_[i * 4 + 2];
+            float cy = prior_data_[i * 4 + 1] + loc_data[i * 4 + 1] * variances_[0] * prior_data_[i * 4 + 3];
+            float w = prior_data_[i * 4 + 2] * expf(loc_data[i * 4 + 2] * variances_[1]);
+            float h = prior_data_[i * 4 + 3] * expf(loc_data[i * 4 + 3] * variances_[1]);
 
             detection_t detection;
             detection.conf = conf;
@@ -121,8 +125,8 @@ namespace dcl {
             detection.box.x2 = int((cx + w * 0.5f) * target_size);
             detection.box.y2 = int((cy + h * 0.5f) * target_size);
             for (int k = 0; k < 5; ++k) {
-                float px = prior_data_[i * 4 + 0] + pts_data.data[i * 10 + 2 * k + 0] * variances_[0] * prior_data_[i * 4 + 2];
-                float py = prior_data_[i * 4 + 1] + pts_data.data[i * 10 + 2 * k + 1] * variances_[0] * prior_data_[i * 4 + 3];
+                float px = prior_data_[i * 4 + 0] + pts_data[i * 10 + 2 * k + 0] * variances_[0] * prior_data_[i * 4 + 2];
+                float py = prior_data_[i * 4 + 1] + pts_data[i * 10 + 2 * k + 1] * variances_[0] * prior_data_[i * 4 + 3];
                 detection.pts[k].x = int(px * target_size);
                 detection.pts[k].y = int(py * target_size);
             }

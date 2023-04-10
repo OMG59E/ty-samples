@@ -45,6 +45,8 @@ namespace dcl {
         float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
         const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 8400, 85
+        auto* pred = (float*)(tensor.data);
+
         detections.clear();
         const int num_anchors = tensor.c();
         const int step = num_classes_ + 5;
@@ -52,18 +54,18 @@ namespace dcl {
         assert(tensor.d[tensor.nbDims-1] == step);
 
         for (int dn=0; dn < num_anchors; ++dn) {
-            float obj_conf = tensor.data[dn * step + 4];
+            float obj_conf = pred[dn * step + 4];
             if (obj_conf < conf_threshold_)
                 continue;
 
-            float w = tensor.data[dn * step + 2];
-            float h = tensor.data[dn * step + 3];
+            float w = pred[dn * step + 2];
+            float h = pred[dn * step + 3];
 
             if (w < min_wh_ || h < min_wh_ || w > max_wh_ || h > max_wh_)
                 continue;
 
-            float cx = tensor.data[dn * step + 0];
-            float cy = tensor.data[dn * step + 1];
+            float cx = pred[dn * step + 0];
+            float cy = pred[dn * step + 1];
 
             // scale_coords
             int x1 = int((cx - w * 0.5f - pad_w) / gain);
@@ -85,7 +87,7 @@ namespace dcl {
             int num_cls{-1};
             float max_conf{-1};
             for (int dc = 0; dc < num_classes_; ++dc) {  // [0-80)
-                float conf = tensor.data[dn * step + 5 + dc] * obj_conf;
+                float conf = pred[dn * step + 5 + dc] * obj_conf;
                 if (max_conf < conf) {
                     num_cls = dc;
                     max_conf = conf;

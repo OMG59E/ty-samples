@@ -166,8 +166,8 @@ namespace dcl {
         vOutputTensors.resize(nbNumOutput_);
         for (int i = 0; i < nbNumOutput_; ++i) {
             dclDataBuffer *dataBuffer = dclmdlGetDatasetBuffer(outputDataset_, i);
-            void *data = dclGetDataBufferAddr(dataBuffer);
-            vOutputTensors[i].data = reinterpret_cast<float *>(data);
+            // void *data = dclGetDataBufferAddr(dataBuffer);
+            vOutputTensors[i].data = dclGetDataBufferAddr(dataBuffer);
             vOutputTensors[i].nbDims = int(vOutputDims_[i].dimCount);
             for (int j = 0; j < vOutputTensors[i].nbDims; ++j)
                 vOutputTensors[i].d[j] = int(vOutputDims_[i].dims[j]);
@@ -178,6 +178,8 @@ namespace dcl {
 
             } else if (DCL_FLOAT == datatype) {
                 // nothing
+            } else if (DCL_INT32 == datatype) {
+                vOutputTensors[i].dataType = DCL_INT32;
             } else {
                 DCL_APP_LOG(DCL_ERROR, "Not support data type %d", datatype);
                 return -5;
@@ -279,7 +281,7 @@ namespace dcl {
                             n, dims.dimCount, shape.c_str(), dclmdlGetInputDataType(desc_, n), input.aippIdx);
 
                 // ret = dclrtMalloc(&(input.data), input.dataSize*sizeof(uint8_t), DCL_MEM_MALLOC_NORMAL_ONLY);
-                ret = dclrtMallocEx(&(input.data), &(input.phyaddr), input.dataSize*sizeof(uint8_t), 16, DCL_MEM_MALLOC_NORMAL_ONLY);
+                ret = dclrtMallocEx(&(input.data), &(input.phyAddr), input.dataSize*sizeof(uint8_t), 16, DCL_MEM_MALLOC_NORMAL_ONLY);
                 if (DCL_SUCCESS != ret) {
                     DCL_APP_LOG(DCL_ERROR, "Failed to malloc data buffer without aipp, error code: %d", ret);
                     return -5;

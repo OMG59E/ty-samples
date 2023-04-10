@@ -26,12 +26,12 @@ namespace dcl {
         //}
         //DCL_APP_LOG(DCL_INFO, "dcl mem init success");
 
-        /*ret = dclmpiInit();
+        ret = dclmpiInit();
         if (DCL_SUCCESS != ret) {
             DCL_APP_LOG(DCL_ERROR, "dcl mpi init failed, errorCode = %d", static_cast<int32_t>(ret));
             return -3;
         }
-        DCL_APP_LOG(DCL_INFO, "dcl mpi init success");*/
+        DCL_APP_LOG(DCL_INFO, "dcl mpi init success");
 
         int32_t majorVersion = 0, minorVersion = 0, patchVersion = 0;
         ret = dclrtGetVersion(&majorVersion, &minorVersion, &patchVersion);
@@ -52,11 +52,11 @@ namespace dcl {
         //}
         //DCL_APP_LOG(DCL_INFO, "memory de-init done");
 
-        /*ret = dclmpiExit();
+        ret = dclmpiExit();
         if (DCL_SUCCESS != ret) {
             DCL_APP_LOG(DCL_ERROR, "mpi exit failed, errorCode = %d", static_cast<int32_t>(ret));
             return -3;
-        }*/
+        }
 
         dclError ret = dclFinalize();
         if (DCL_SUCCESS != ret) {

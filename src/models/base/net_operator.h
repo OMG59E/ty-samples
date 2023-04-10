@@ -26,7 +26,7 @@ namespace dcl {
     typedef struct {
         int idx{-1};
         void *data{nullptr};
-        uint64_t phyaddr{0};
+        uint64_t phyAddr{0};
         dclmdlIODims dim{{0}};
         size_t dataSize{0};
         int height{0};

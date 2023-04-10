@@ -1,19 +1,19 @@
 //
-// Created on 23-2-20.
+// Created by intellif on 23-4-10.
 //
 #include <cassert>
 
-#include "yolov7_pose.h"
+#include "yolov8_pose.h"
 #include "utils/nms.h"
 
-int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+int dcl::YoloV8Pose::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
     if (1 != images.size()) {
         DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
         return -1;
     }
 
-    if (5 != vOutputTensors_.size()) {
-        DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 5", vOutputTensors_.size());
+    if (1 != vOutputTensors_.size()) {
+        DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 1", vOutputTensors_.size());
         return -2;
     }
 
@@ -21,28 +21,26 @@ int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vecto
     float pad_h = (input_sizes_[0] - images[0].h() * gain) * 0.5f;
     float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
-    const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 25500, 57
+    const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 56, 8400
     auto* pred = (float*)(tensor.data);
 
-    const int num_anchors = tensor.c();
-    const int step = tensor.h(); // 57
-    assert(1 == tensor.n());
-    assert(tensor.d[tensor.nbDims-1] == step);
+    const int num_anchors = tensor.d[2];
+    const int step = num_anchors;
 
     detections.clear();
     for (int dn=0; dn<num_anchors; ++dn) {
-        float conf = pred[dn * step + 4] * pred[dn * step + 5];  // obj_conf
+        float conf = pred[4 * step + dn];  // obj_conf
         if (conf < conf_threshold_)
             continue;
 
-        float w = pred[dn * step + 2];
-        float h = pred[dn * step + 3];
+        float w = pred[2 * step + dn];
+        float h = pred[3 * step + dn];
 
         if (w < min_wh_ || h < min_wh_ || w > max_wh_ || h > max_wh_)
             continue;
 
-        float cx = pred[dn * step + 0];
-        float cy = pred[dn * step + 1];
+        float cx = pred[0 * step + dn];
+        float cy = pred[1 * step + dn];
 
         // scale_coords
         int x1 = int((cx - w * 0.5f - pad_w) / gain);
@@ -64,9 +62,9 @@ int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vecto
         detection.cls = 0;
         detection.conf = conf; // obj_conf * cls_conf
         for (int k=0; k<num_keypoint_; ++k) {
-            detection.kpts[k].x = int((pred[dn * step + k * 3 + 6] - pad_w) / gain);
-            detection.kpts[k].y = int((pred[dn * step + k * 3 + 7] - pad_h) / gain);
-            detection.kpts[k].score = pred[dn * step + k * 3 + 8];
+            detection.kpts[k].x = int((pred[(k * 3 + 5) * step + dn] - pad_w) / gain);
+            detection.kpts[k].y = int((pred[(k * 3 + 6) * step + dn] - pad_h) / gain);
+            detection.kpts[k].score = pred[(k * 3 + 7) * step + dn];
         }
         detections.emplace_back(detection);
     }
@@ -75,4 +73,3 @@ int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vecto
     non_max_suppression(detections, iou_threshold_);
     return 0;
 }
-

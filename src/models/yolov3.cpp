@@ -8,10 +8,9 @@
 #include "utils/nms.h"
 #include "utils/color.h"
 #include "utils/resize.h"
+#include "utils/math_utils.h"
 
 namespace dcl {
-    float sigmoid(float x) { return 1.0f / (1.0f + expf(-x)); }
-
     int YoloV3::load(const std::string &modelPath) {
         conf_threshold_inv_ = -logf((1.0f / conf_threshold_) - 1.0f);
         // init feature map size

@@ -1,8 +1,9 @@
 //
 // Created by intellif on 23-4-19.
 //
-#include <opencv2/opencv.hpp>
-
+#include "opencv2/core/core.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/imgcodecs/imgcodecs.hpp"
 #include "models/pplcnet.h"
 #include "utils/device.h"
 #include "utils/utils.h"

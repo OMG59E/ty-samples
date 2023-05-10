@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(dcl_wrapper C CXX)
 
-set(SDK_PATH $ENV{DENGINE_ROOT}/tyhcp)
+set(HCP_PATH $ENV{DENGINE_ROOT}/tyhcp)
 set(COMMON_COMPILER_FLAG "-w -fPIC")
 
 if (NOT "${HOST_TYPE}" STREQUAL "x86")
@@ -17,21 +17,24 @@ else()
 endif()
 
 if (NOT "${HOST_TYPE}" STREQUAL "x86")
-    set(SDK_LIB_PATH ${SDK_PATH}/${HOST_TYPE}/$ENV{CROSS_PLAT}/lib)
-    set(OPENCV_PATH $ENV{DENGINE_ROOT}/tyhcp/${HOST_TYPE}/$ENV{CROSS_PLAT}/3rdparty/opencv)
+    set(HCP_LIB_PATH ${HCP_PATH}/${HOST_TYPE}/$ENV{CROSS_PLAT}/lib)
+    set(DPF_LIB_PATH $ENV{DENGINE_ROOT}/tydpf/${HOST_TYPE}/$ENV{CROSS_PLAT}/lib)
+    set(OPENCV_PATH $ENV{DENGINE_ROOT}/tyexamples/modelzoo/3rdparty/opencv)
+
+    link_directories(${HCP_LIB_PATH})
+    link_directories(${DPF_LIB_PATH})
 else()
     set(SDK_LIB_PATH ${SDK_PATH}/simu/$ENV{HOST_PLAT}/lib)
     set(OPENCV_PATH /usr/local)
 endif()
 
+include_directories(${HCP_PATH}/include/dcl)
 include_directories(src/graph/include)
 include_directories(src/common)
 include_directories(src/utils)
 include_directories(src)
-include_directories(${SDK_PATH}/include/hcp)
 include_directories(${OPENCV_PATH}/include)
 
-link_directories(${SDK_LIB_PATH})
 link_directories(${OPENCV_PATH}/lib)
 
 add_subdirectory(src)

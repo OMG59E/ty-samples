@@ -51,4 +51,13 @@ do {                                       \
         ptr = nullptr;                     \
     }                                      \
 } while(0)
+
+
+#define SAFE_FREE(ptr)                     \
+do {                                       \
+    if (ptr) {                             \
+        delete ptr;                        \
+        ptr = nullptr;                     \
+    }                                      \
+} while(0)
 #endif //DCL_WRAPPER_MACRO_H

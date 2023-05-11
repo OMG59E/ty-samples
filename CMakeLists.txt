@@ -40,6 +40,7 @@ link_directories(${OPENCV_PATH}/lib)
 
 add_subdirectory(src)
 add_subdirectory(examples)
+add_subdirectory(tools)
 
 list(APPEND SDK_LIBS ty_dcl)
 list(APPEND SDK_LIBS ty_common)
@@ -87,4 +88,16 @@ foreach(EXAMPLE_NAME ${EXAMPLE_SOURCES})
     add_executable(${TEST_CASE_NAME} ${EXAMPLE_NAME})
     target_link_libraries(${TEST_CASE_NAME} ${PROJECT_NAME})
     set_target_properties(${TEST_CASE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY .)
+endforeach()
+
+foreach(TOOL_NAME ${TOOL_SOURCES})
+    #unpack the dir "/"
+    string(REPLACE "/" ";" SEXY_LIST ${TOOL_NAME})
+    list(GET SEXY_LIST -1 TOOL_CASE_NAME)
+    #get the file name without suffix
+    string(REPLACE "." ";" SEXY_LIST ${TOOL_CASE_NAME})
+    list(GET SEXY_LIST 0 TOOL_CASE_NAME)
+    add_executable(${TOOL_CASE_NAME} ${TOOL_NAME})
+    target_link_libraries(${TOOL_CASE_NAME} ${PROJECT_NAME})
+    set_target_properties(${TOOL_CASE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY .)
 endforeach()

@@ -62,6 +62,8 @@ namespace dcl {
         NetOperator() = default;
         ~NetOperator() = default;
 
+        NetOperator(uint32_t modelId);
+
         /**
          * load model from file
          * @param modelPath
@@ -106,14 +108,16 @@ namespace dcl {
 
         std::vector<input_t>& getInputs() { return vInputs_; };
 
+        NetOperator* clone() const;
+
     private:
+        int initInputOutput();
+
         int createModelDesc();
 
         int destroyModelDesc();
 
         int createInputDataset();
-
-        int updateDataBuffer();
 
         int createOutputDataset();
 
@@ -121,11 +125,9 @@ namespace dcl {
 
         int destroyInputDataset();
 
-        int findAippDataIdx(int aippIdx) const;
-
     public:
-        std::mutex rw_mutex_;
-        dcl::Mat img_;
+        static uint32_t ref_count_;
+        static std::mutex rw_mutex_;
 
     private:
         dclmdlDataset *inputDataset_{nullptr};
@@ -141,12 +143,7 @@ namespace dcl {
         dclprofConfig *profCfgP_{nullptr};
         bool enableProf_{false};
         // bool enableAipp_{true};
-        bool loadFlag_{false};  // loadModel
-        size_t workSize_{0};
-        size_t weightSize_{0};
-        void *workPtr_{nullptr}; // model work memory buffer
-        void *weightPtr_{nullptr}; // model weight memory buffer
-        uint32_t id_{0};
+        uint32_t modelId_{0};
         dclmdlDesc *desc_{nullptr};
     };
 }

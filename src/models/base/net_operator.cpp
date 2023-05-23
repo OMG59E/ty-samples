@@ -31,6 +31,9 @@ namespace dcl {
             return -3;
         }
 
+        if (!enableAipp)
+            dclmdlSetAippDisable(id_);
+
         loadFlag_ = true;
         DCL_APP_LOG(DCL_INFO, "load model %s success", modelPath.c_str());
 

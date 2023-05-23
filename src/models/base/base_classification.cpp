@@ -18,7 +18,7 @@ namespace dcl {
         for (int n=0; n < images.size(); ++n) {
             dcl::Mat img;
             img.data = static_cast<unsigned char *>(vInputs[n].data);
-            img.phyaddr = vInputs[n].phyaddr;
+            img.phyAddr = vInputs[n].phyAddr;
             img.channels = vInputs[n].c();
             img.height = vInputs[n].h();
             img.width = vInputs[n].w();
@@ -70,6 +70,7 @@ namespace dcl {
                                     std::vector<dcl::classification_t> &classifications) {
         classifications.clear();
         for (const auto &tensor: vOutputTensors_) {
+            auto* pred = (float*)(tensor.data);
             if (2 != tensor.nbDims) {
                 DCL_APP_LOG(DCL_ERROR, "Output tensor dims(%d) must be 2", tensor.nbDims);
                 return -1;
@@ -81,11 +82,12 @@ namespace dcl {
             }
 
             const int num_classes = tensor.c();
+
             // find max
             int max_cls = -1;
             float max_conf = 0;
             for (int c = 0; c < num_classes; ++c) {
-                float conf = tensor.data[c];
+                float conf = pred[c];
                 if (conf > max_conf) {
                     max_cls = c;
                     max_conf = conf;

@@ -8,10 +8,9 @@
 #include "utils/nms.h"
 #include "utils/color.h"
 #include "utils/resize.h"
+#include "utils/math_utils.h"
 
 namespace dcl {
-    float sigmoid(float x) { return 1.0f / (1.0f + expf(-x)); }
-
     int YoloV3::load(const std::string &modelPath) {
         conf_threshold_inv_ = -logf((1.0f / conf_threshold_) - 1.0f);
         // init feature map size
@@ -31,7 +30,7 @@ namespace dcl {
         for (int n=0; n < images.size(); ++n) {
             dcl::Mat img;
             img.data = static_cast<unsigned char *>(vInputs[n].data);
-            img.phyaddr = vInputs[n].phyaddr;
+            img.phyAddr = vInputs[n].phyAddr;
             img.channels = vInputs[n].c();
             img.height = vInputs[n].h();
             img.width = vInputs[n].w();
@@ -59,6 +58,9 @@ namespace dcl {
         detections.clear();
         for (int k = 0; k < vOutputTensors_.size(); ++k) {
             const dcl::Tensor &tensor = vOutputTensors_[k];  // bs1, 3, 85, h, w
+
+            auto* data = (float*)(tensor.data);
+
             const int C = tensor.c();
             const int H = tensor.h();
             const int W = tensor.w();
@@ -70,20 +72,20 @@ namespace dcl {
             for (int dh = 0; dh < H; ++dh) {
                 for (int dw = 0; dw < W; ++dw) {
                     for (int dn = 0; dn < num_per_anchors_; ++dn) {  // [0-3)
-                        float conf = tensor.data[dn * (num_classes_ + 5) * H * W + 4 * H * W + dh * W + dw];
+                        float conf = data[dn * (num_classes_ + 5) * H * W + 4 * H * W + dh * W + dw];
                         if (conf < conf_threshold_inv_)
                             continue;
 
-                        float w = expf(tensor.data[dn * (num_classes_ + 5) * H * W + 2 * H * W + dh * W + dw]) * anchor_sizes_[k][dn][0];
-                        float h = expf(tensor.data[dn * (num_classes_ + 5) * H * W + 3 * H * W + dh * W + dw]) * anchor_sizes_[k][dn][1];
+                        float w = expf(data[dn * (num_classes_ + 5) * H * W + 2 * H * W + dh * W + dw]) * anchor_sizes_[k][dn][0];
+                        float h = expf(data[dn * (num_classes_ + 5) * H * W + 3 * H * W + dh * W + dw]) * anchor_sizes_[k][dn][1];
 
                         if (w < min_wh_ || h < min_wh_ || w > max_wh_ || h > max_wh_)
                             continue;
 
-                        conf = sigmoid(tensor.data[dn * (num_classes_ + 5) * H * W + 4 * H * W + dh * W + dw]);
+                        conf = sigmoid(data[dn * (num_classes_ + 5) * H * W + 4 * H * W + dh * W + dw]);
 
-                        float cx = (sigmoid(tensor.data[dn * (num_classes_ + 5) * H * W + 0 * H * W + dh * W + dw]) + dw) * strides_[k][0];
-                        float cy = (sigmoid(tensor.data[dn * (num_classes_ + 5) * H * W + 1 * H * W + dh * W + dw]) + dh) * strides_[k][1];
+                        float cx = (sigmoid(data[dn * (num_classes_ + 5) * H * W + 0 * H * W + dh * W + dw]) + dw) * strides_[k][0];
+                        float cy = (sigmoid(data[dn * (num_classes_ + 5) * H * W + 1 * H * W + dh * W + dw]) + dh) * strides_[k][1];
 
                         // scale_coords
                         int x1 = int((cx - w * 0.5f - pad_w) / gain);
@@ -105,7 +107,7 @@ namespace dcl {
                         int num_cls{-1};
                         float max_conf{-1};
                         for (int dc = 0; dc < num_classes_; ++dc) {  // [0-80)
-                            float score = sigmoid(tensor.data[dn * (num_classes_ + 5) * H * W + (5 + dc) * H * W + dh * W + dw]) * conf;
+                            float score = sigmoid(data[dn * (num_classes_ + 5) * H * W + (5 + dc) * H * W + dh * W + dw]) * conf;
                             if (max_conf < score) {
                                 num_cls = dc;
                                 max_conf = score;

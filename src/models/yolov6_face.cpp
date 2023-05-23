@@ -22,6 +22,7 @@ namespace dcl {
         float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
         const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 25200, 117
+        auto* pred = (float*)(tensor.data);
 
         const int num_anchors = tensor.c();
         const int step = num_classes_ + 5 + 10;
@@ -39,18 +40,18 @@ namespace dcl {
 
         detections.clear();
         for (int dn = 0; dn < num_anchors; ++dn) {
-            float conf = tensor.data[dn * step + 14] * tensor.data[dn * step + 15];
+            float conf = pred[dn * step + 14] * pred[dn * step + 15];
             if (conf < conf_threshold_)
                 continue;
 
-            float w = tensor.data[dn * step + 2];
-            float h = tensor.data[dn * step + 3];
+            float w = pred[dn * step + 2];
+            float h = pred[dn * step + 3];
 
             if (w < min_wh_ || h < min_wh_ || w > max_wh_ || h > max_wh_)
                 continue;
 
-            float cx = tensor.data[dn * step + 0];
-            float cy = tensor.data[dn * step + 1];
+            float cx = pred[dn * step + 0];
+            float cy = pred[dn * step + 1];
 
             // scale_coords
             int x1 = int((cx - w * 0.5f - pad_w) / gain);
@@ -72,8 +73,8 @@ namespace dcl {
             detection.cls = 0;
             detection.conf = conf;
             for (int k=0; k<5; ++k) {
-                detection.pts[k].x = int((tensor.data[dn * step + k * 2 + 4] - pad_w) / gain);
-                detection.pts[k].y = int((tensor.data[dn * step + k * 2 + 5] - pad_h) / gain);
+                detection.pts[k].x = int((pred[dn * step + k * 2 + 4] - pad_w) / gain);
+                detection.pts[k].y = int((pred[dn * step + k * 2 + 5] - pad_h) / gain);
             }
             detections.emplace_back(detection);
         }

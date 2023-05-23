@@ -1,10 +1,11 @@
 //
-// Created on 23-2-20.
+// Created by intellif on 23-4-13.
 //
+
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/imgcodecs/imgcodecs.hpp"
-#include "models/yolov7_pose.h"
+#include "models/yolov8_pose2.h"
 #include "utils/device.h"
 #include "utils/utils.h"
 #include "utils/image.h"
@@ -28,8 +29,9 @@ const static std::vector<int> pose_kpt_color = {16, 16, 16, 16, 16, 0, 0, 0, 0, 
 
 int main(int argc, char** argv) {
     if (argc != 5) {
-        printf("input param num(%d) must be == 5,\n"
-               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path\n", argc);
+        DCL_APP_LOG(DCL_ERROR, "input param num(%d) must be == 5,\n"
+                               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path",
+                    argc);
         return -1;
     }
 
@@ -41,7 +43,7 @@ int main(int argc, char** argv) {
     // sdk init
     dcl::deviceInit(sdkCfg);
 
-    dcl::YoloV7Pose model;
+    dcl::YoloV8Pose2 model;
     std::vector<dcl::detection_t> detections;
     dcl::Mat img;
 
@@ -51,8 +53,7 @@ int main(int argc, char** argv) {
         goto exit;
     }
 
-    img.create(src.rows, src.cols, DCL_PIXEL_FORMAT_BGR_888_PACKED);
-    memcpy(img.data, src.data, img.size());
+    img = cvMatToDclMat(src);
 
     // load model
     if (0 != model.load(binFile)) {
@@ -61,9 +62,11 @@ int main(int argc, char** argv) {
     }
 
     // inference
-    if (0 != model.inference(img, detections)) {
-        DCL_APP_LOG(DCL_ERROR, "Failed to inference");
-        goto exit;
+    for (int i=0; i<10; ++i) {
+        if (0 != model.inference(img, detections)) {
+            DCL_APP_LOG(DCL_ERROR, "Failed to inference");
+            goto exit;
+        }
     }
 
     // unload
@@ -101,7 +104,6 @@ int main(int argc, char** argv) {
 
 exit:
     src.release();
-    img.free();
     // sdk release
     dcl::deviceFinalize();
     return 0;

@@ -20,7 +20,7 @@ namespace dcl {
 
     struct Mat {
         unsigned char *data{nullptr};
-        uint64_t phyaddr{0};
+        uint64_t phyAddr{0};
         int channels{0};
         int height{0};  // 16 pixel align
         int width{0};   // 16 pixel align
@@ -66,9 +66,9 @@ namespace dcl {
 
             own = true;
             //dclError ret = dclrtMalloc((void **) &data, size(), DCL_MEM_MALLOC_NORMAL_ONLY);
-            dclError ret = dclrtMallocEx((void **)&data, &phyaddr, size(), 16, DCL_MEM_MALLOC_NORMAL_ONLY);
+            dclError ret = dclrtMallocEx((void**)&data, &phyAddr, size(), 16, DCL_MEM_MALLOC_NORMAL_ONLY);
             if (DCL_SUCCESS != ret) {
-                DCL_APP_LOG(DCL_ERROR, "dclrtMalloc failed, channels: %d height: %d width: %d",
+                DCL_APP_LOG(DCL_ERROR, "dclrtMallocEx failed, channels: %d height: %d width: %d",
                             channels, height, width);
                 return -3;
             }
@@ -112,7 +112,7 @@ namespace dcl {
     typedef dclDataType dclDataType_t;
 
     struct Tensor {
-        float *data{nullptr};
+        void *data{nullptr};
         int nbDims{0};
         int d[8]{};
         dataLayout_t dataLayout{DCL_FORMAT_NCHW};
@@ -208,6 +208,7 @@ namespace dcl {
         Point pts[5]{};  // 5 landmark
         Point kpts[17]{}; // 17-keypoints
         float mask[32]{};
+        dcl::Mat prob;
         std::vector<contour_t> contours;
     } detection_t;
 

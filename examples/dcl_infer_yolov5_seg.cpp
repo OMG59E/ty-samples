@@ -35,8 +35,6 @@ int main(int argc, char** argv) {
     std::vector<dcl::detection_t> detections;
     dcl::Mat img;
 
-    cv::Mat mask;
-
     cv::Mat src = cv::imread(imgPath);
     if (src.empty()) {
         DCL_APP_LOG(DCL_ERROR, "Failed to read img, maybe filepath not exist -> %s", imgPath);
@@ -66,31 +64,27 @@ int main(int argc, char** argv) {
 
     DCL_APP_LOG(DCL_INFO, "Found object num: %d", detections.size());
 
-    mask.create(src.rows, src.cols, CV_8UC1);
-    for (const auto& detection : detections) {
+    for (auto& detection : detections) {
         const cv::Scalar& color = palette[detection.cls % 18];
         cv::rectangle(src, cv::Point(detection.box.x1, detection.box.y1),
                        cv::Point(detection.box.x2, detection.box.y2), color, 2);
-        memset(mask.data, 0, src.rows*src.cols);
-        cv::fillPoly(mask, detection.contours, cv::Scalar(255));  // 填充mask
+
         // add
         for (int h=detection.box.y1; h<=detection.box.y2; ++h) {
             for (int w=detection.box.x1; w<=detection.box.x2; ++w) {
-                if (mask.data[h * src.cols + w] == 255) {
+                if (detection.prob.data[(h - detection.box.y1) * detection.prob.w() + (w - detection.box.x1)] >= 127.5) {
                     src.data[h * src.cols * 3 + w * 3 + 0] = src.data[h * src.cols * 3 + w * 3 + 0] * 0.5f + color[0] * 0.5f;
                     src.data[h * src.cols * 3 + w * 3 + 1] = src.data[h * src.cols * 3 + w * 3 + 1] * 0.5f + color[1] * 0.5f;
                     src.data[h * src.cols * 3 + w * 3 + 2] = src.data[h * src.cols * 3 + w * 3 + 2] * 0.5f + color[2] * 0.5f;
                 }
             }
         }
-        cv::drawContours(src, detection.contours, -1, color, 2);
+        detection.prob.free();
     }
     cv::imwrite(resFile, src);
 
 exit:
     src.release();
-    img.free();
-    mask.release();
     // sdk release
     dcl::deviceFinalize();
     return 0;

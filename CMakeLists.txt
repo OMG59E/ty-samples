@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(dcl_wrapper C CXX)
 
-set(SDK_PATH $ENV{DENGINE_ROOT}/tyhcp)
+set(HCP_PATH $ENV{DENGINE_ROOT}/tyhcp)
 set(COMMON_COMPILER_FLAG "-w -fPIC")
 
 if (NOT "${HOST_TYPE}" STREQUAL "x86")
@@ -17,25 +17,30 @@ else()
 endif()
 
 if (NOT "${HOST_TYPE}" STREQUAL "x86")
-    set(SDK_LIB_PATH ${SDK_PATH}/${HOST_TYPE}/$ENV{CROSS_PLAT}/lib)
-    set(OPENCV_PATH $ENV{DENGINE_ROOT}/tyhcp/${HOST_TYPE}/$ENV{CROSS_PLAT}/3rdparty/opencv)
+    set(HCP_LIB_PATH ${HCP_PATH}/${HOST_TYPE}/$ENV{CROSS_PLAT}/lib)
+    set(DPF_LIB_PATH $ENV{DENGINE_ROOT}/tydpf/${HOST_TYPE}/$ENV{CROSS_PLAT}/lib)
+    set(OPENCV_PATH $ENV{DENGINE_ROOT}/tyexamples/modelzoo/3rdparty/opencv)
+
+    link_directories(${HCP_LIB_PATH})
+    link_directories(${DPF_LIB_PATH})
 else()
-    set(SDK_LIB_PATH ${SDK_PATH}/simu/$ENV{HOST_PLAT}/lib)
+    set(SDK_LIB_PATH ${HCP_PATH}/simu/$ENV{HOST_PLAT}/lib)
     set(OPENCV_PATH /usr/local)
+    link_directories(${SDK_LIB_PATH})
 endif()
 
+include_directories(${HCP_PATH}/include/dcl)
 include_directories(src/graph/include)
 include_directories(src/common)
 include_directories(src/utils)
 include_directories(src)
-include_directories(${SDK_PATH}/include/hcp)
 include_directories(${OPENCV_PATH}/include)
 
-link_directories(${SDK_LIB_PATH})
 link_directories(${OPENCV_PATH}/lib)
 
 add_subdirectory(src)
 add_subdirectory(examples)
+add_subdirectory(tools)
 
 list(APPEND SDK_LIBS ty_dcl)
 list(APPEND SDK_LIBS ty_common)
@@ -83,4 +88,16 @@ foreach(EXAMPLE_NAME ${EXAMPLE_SOURCES})
     add_executable(${TEST_CASE_NAME} ${EXAMPLE_NAME})
     target_link_libraries(${TEST_CASE_NAME} ${PROJECT_NAME})
     set_target_properties(${TEST_CASE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY .)
+endforeach()
+
+foreach(TOOL_NAME ${TOOL_SOURCES})
+    #unpack the dir "/"
+    string(REPLACE "/" ";" SEXY_LIST ${TOOL_NAME})
+    list(GET SEXY_LIST -1 TOOL_CASE_NAME)
+    #get the file name without suffix
+    string(REPLACE "." ";" SEXY_LIST ${TOOL_CASE_NAME})
+    list(GET SEXY_LIST 0 TOOL_CASE_NAME)
+    add_executable(${TOOL_CASE_NAME} ${TOOL_NAME})
+    target_link_libraries(${TOOL_CASE_NAME} ${PROJECT_NAME})
+    set_target_properties(${TOOL_CASE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY .)
 endforeach()

@@ -6,7 +6,6 @@ cd opencv_3.4.2 && mkdir -p build && cd build
 cmake \
 -DCMAKE_BUILD_TYPE=RELEASE \
 -DCMAKE_INSTALL_PREFIX=../../opencv \
--DCMAKE_SYSTEM_PROCESSOR=aarch64 \
 -DCMAKE_CXX_COMPILER="${ARM_CXX_COMPILER}" \
 -DCMAKE_C_COMPILER="${ARM_C_COMPILER}" \
 -DCMAKE_CXX_FLAGS="-O2 -std=c++11 -w -fPIC ${ARM_CXX_FLAGS}" \
@@ -18,6 +17,7 @@ cmake \
 -DWITH_IMGCODEC_PXM=OFF \
 -DWITH_IMGCODEC_HDR=OFF \
 -DWITH_JPEG=ON \
+-DWITH_JPEG2000=ON \
 -DWITH_IMGCODEC_SUNRASTER=OFF \
 -DWITH_GTK=OFF \
 -DWITH_GSTREAMER=OFF \
@@ -33,8 +33,8 @@ cmake \
 -DBUILD_opencv_python3=OFF \
 -DBUILD_opencv_python2=OFF \
 -DBUILD_ZLIB=ON \
--DBUILD_IPP_IW=ON \
--DBUILD_ITT=ON \
+-DBUILD_IPP_IW=OFF \
+-DBUILD_ITT=OFF \
 -DBUILD_JAVA=OFF \
 -DBUILD_TESTS=OFF \
 -DBUILD_PERF_TESTS=OFF \
@@ -59,4 +59,4 @@ cmake \
 -DBUILD_opencv_python_bindings_generator=OFF \
 -DBUILD_opencv_apps=OFF ..
 
-make -j4 && make install
+make -j20 && make install

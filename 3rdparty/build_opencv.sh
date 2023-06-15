@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck disable=SC2164
-cd opencv_3.4.2 && mkdir -p build && cd build && make clean
+cd opencv_3.4.2 && mkdir -p build && cd build
 
 cmake \
 -DCMAKE_BUILD_TYPE=RELEASE \
@@ -26,6 +26,7 @@ cmake \
 -DWITH_VTK=OFF \
 -DWITH_WEBP=OFF \
 -DWITH_TIFF=OFF \
+-DWITH_IPP=OFF \
 -DWITH_V4L=OFF \
 -DWITH_PROTOBUF=OFF \
 -DBUILD_opencv_python3=OFF \

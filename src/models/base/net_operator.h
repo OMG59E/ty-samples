@@ -43,7 +43,7 @@ namespace dcl {
         bool hasAipp() const { return aippIdx != -1; }
 
         void update(int c, int h, int w, pixelFormat_t _pixelFormat) {
-            dataSize = channels * height * width;
+            dataSize = c * h * w;
             height = h;
             width = w;
             channels = c;

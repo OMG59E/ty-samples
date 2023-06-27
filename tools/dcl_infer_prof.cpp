@@ -13,6 +13,7 @@
 using namespace moodycamel;
 
 typedef struct {
+    uint64_t count{0};
     uint64_t preprocess_time{0};  // us
     uint64_t inference_time{0};  // us
     uint64_t total_time() const { return preprocess_time + inference_time; }
@@ -47,6 +48,7 @@ void infer(dcl::NetOperator *net, ConcurrentQueue<dcl::Mat> &queue, counter_t& c
         auto t2 = std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
         counter.inference_time += t2 - t1;
+        counter.count++;
     }
     if (isClone) {
         p->unload();
@@ -131,6 +133,9 @@ int main(int argc, char **argv) {
 
     // find max thread time
     for (int n=0; n<numThreads; ++n) {
+        DCL_APP_LOG(DCL_INFO, "Thread[%d]: samples: %d, preprocess: %.3fms, infer: %.3fms, preprocess + infer: %.3fms",
+                    n, spans[n].count, spans[n].preprocess_time / 1000.0f,
+                    spans[n].inference_time / 1000.0f, spans[n].total_time() / 1000.0f);
         if (spans[n].total_time() > max_span) {
             max_span = spans[n].total_time();
             idx = n;

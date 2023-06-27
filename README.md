@@ -32,13 +32,13 @@ source env_host.sh  # 无需重复
 在主控端TyHCP容器内
 
 ```shell
-cd /DEngine/tyexamples/dcl/modelzoo/
+cd /DEngine/tyexamples/modelzoo/
 sh build.sh
 ```
 
 ### 执行
 
-在芯片端执行，需要自行挂载主机侧/DEngine至芯片侧，方便文件交互; 因为modelzoo部分不含JPEG编解码，目前仅支持bmp格式图片
+在芯片端执行，需要自行挂载主机侧/DEngine至芯片侧
 
 #### 检测模型
 

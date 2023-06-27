@@ -32,21 +32,21 @@ source env_host.sh  # 无需重复
 在主控端TyHCP容器内
 
 ```shell
-cd /DEngine/tyexamples/dcl/modelzoo/
+cd /DEngine/tyexamples/modelzoo/
 sh build.sh
 ```
 
 ### 执行
 
-在芯片端执行，需要自行挂载主机侧/DEngine至芯片侧，方便文件交互; 因为modelzoo部分不含JPEG编解码，目前仅支持bmp格式图片
+在芯片端执行，需要自行挂载主机侧/DEngine至芯片侧
 
 #### 检测模型
 
 以yolov7为例, 对应模型的芯片模型需要在tymodelzoo中自行编译
 
 ```shell
-cd /DEngine/tyexamples/dcl/modelzoo/build/
-./dcl_infer_yolov7 /DEngine/tyhcp/config/sdk.cfg ../data/test.bmp /DEngine/tymodelzoo/detection/onnx_yolov7/dp2000/net_combine.bin ../data/test_res.bmp
+cd /DEngine/tyexamples/modelzoo/build/
+./dcl_infer_yolov7 /config/sdk.cfg ../data/test.bmp /DEngine/tymodelzoo/detection/onnx_yolov7/dp2000/net_combine.bin ../data/test_res.bmp
 ```
 
 #### 分类模型
@@ -55,5 +55,5 @@ cd /DEngine/tyexamples/dcl/modelzoo/build/
 
 ```shell
 cd /DEngine/tyexamples/dcl/modelzoo/build/
-./dcl_infer_resnet /DEngine/tyhcp/config/sdk.cfg ../data/test.bmp /DEngine/tymodelzoo/classification/caffe_resnet50/dp2000/net_combine.bin
+./dcl_infer_resnet /config/sdk.cfg ../data/test.bmp /DEngine/tymodelzoo/classification/caffe_resnet50/dp2000/net_combine.bin
 ```

@@ -13,8 +13,9 @@
 using namespace moodycamel;
 
 typedef struct {
-    uint64_t t_start{0};
-    uint64_t t_end{0};
+    uint64_t preprocess_time{0};  // us
+    uint64_t inference_time{0};  // us
+    uint64_t total_time() const { return preprocess_time + inference_time; }
 } counter_t;
 
 void infer(dcl::NetOperator *net, ConcurrentQueue<dcl::Mat> &queue, counter_t& counter,
@@ -23,12 +24,12 @@ void infer(dcl::NetOperator *net, ConcurrentQueue<dcl::Mat> &queue, counter_t& c
     dcl::Mat img;
     std::vector<dcl::Tensor> vOutputTensors;
     std::vector<dcl::input_t> &inputs = p->getInputs();
-    counter.t_start = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
     while (true) {
         if (!queue.try_dequeue(img))
             break;
         // preprocess
+        auto t0 = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
         dcl::Mat m;
         m.data = static_cast<unsigned char *>(inputs[0].data);
         m.phyAddr = inputs[0].phyAddr;
@@ -37,12 +38,16 @@ void infer(dcl::NetOperator *net, ConcurrentQueue<dcl::Mat> &queue, counter_t& c
         m.width = inputs[0].w();
         m.pixelFormat = DCL_PIXEL_FORMAT_RGB_888_PLANAR;
         dclResizeCvtPaddingOp(img, m, dcl::NONE, 114);
+        auto t1 = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+        counter.preprocess_time += t1 - t0;
         // inference
         vOutputTensors.clear();
         p->inference(vOutputTensors);
+        auto t2 = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+        counter.inference_time += t2 - t1;
     }
-    counter.t_end = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
     if (isClone) {
         p->unload();
         SAFE_FREE(p);
@@ -81,7 +86,9 @@ int main(int argc, char **argv) {
     ConcurrentQueue<dcl::Mat> queue(numSamples);
     dcl::Mat img;
     dcl::NetOperator net;
-    float max_span = -1;
+    uint64_t max_span = 0;
+    int32_t idx = -1;
+
     cv::Mat src = cv::imread(imgPath);
     if (src.empty()) {
         DCL_APP_LOG(DCL_ERROR, "Failed to read img, maybe filepath not exist -> %s", imgPath);
@@ -122,16 +129,17 @@ int main(int argc, char **argv) {
     for (auto &t: vt)
         t.join();
 
-    t_start = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
+    // find max thread time
     for (int n=0; n<numThreads; ++n) {
-        if (spans[n].t_start < t_start)
-            t_start = spans[n].t_start;
-        if (spans[n].t_end > t_end)
-            t_end = spans[n].t_end;
+        if (spans[n].total_time() > max_span) {
+            max_span = spans[n].total_time();
+            idx = n;
+        }
     }
-    DCL_APP_LOG(DCL_INFO, "preprocess + infer: %.3fms", (t_end - t_start) / 1000.0f);
-    DCL_APP_LOG(DCL_INFO, "fps: %.3f",  numSamples * 1e6 / float(t_end - t_start));
+    DCL_APP_LOG(DCL_INFO, "samples: %d, preprocess: %.3fms, infer: %.3fms, preprocess + infer: %.3fms", numSamples,
+                spans[idx].preprocess_time / 1000.0f, spans[idx].inference_time / 1000.0f, (max_span) / 1000.0f);
+    DCL_APP_LOG(DCL_INFO, "average infer: %.3fms, fps: %.3f",
+                spans[idx].inference_time / 1000.0f / numSamples, numSamples * 1e6 / float(max_span));
     net.unload();
 
     exit:

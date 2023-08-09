@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck disable=SC2164
-cd opencv_3.4.2 && mkdir -p build && cd build
+cd opencv-4.5.4 && mkdir -p build && cd build
 
 cmake \
 -DCMAKE_BUILD_TYPE=RELEASE \

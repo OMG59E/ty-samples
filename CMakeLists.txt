@@ -35,6 +35,7 @@ include_directories(src/common)
 include_directories(src/utils)
 include_directories(src)
 include_directories(${OPENCV_PATH}/include)
+include_directories(${OPENCV_PATH}/include/opencv4)
 
 link_directories(${OPENCV_PATH}/lib)
 

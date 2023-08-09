@@ -98,7 +98,7 @@ namespace dcl {
                 continue;
             detection.cls = num_cls;
             detection.conf = max_conf;
-            memcpy(detection.mask, tensor.data + dn * step + 5 + num_classes_, nm_ * sizeof(float));
+            memcpy(detection.mask, pred + dn * step + 5 + num_classes_, nm_ * sizeof(float));
             detections.emplace_back(detection);
         }
 

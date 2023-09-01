@@ -35,8 +35,8 @@ namespace dcl {
             return -1;
         }
 
-        if (1 != vOutputTensors_.size()) {
-            DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 1", vOutputTensors_.size());
+        if (1 != vOutputTensors_.size() && 4 != vOutputTensors_.size()) {
+            DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 1 or 4", vOutputTensors_.size());
             return -2;
         }
 

@@ -2,6 +2,8 @@
 // Created by intellif on 23-4-19.
 //
 #include "pplcnet.h"
+#include "utils/resize.h"
+
 
 namespace dcl {
     int PPLCNet::preprocess(const std::vector<dcl::Mat> &images) {
@@ -11,22 +13,14 @@ namespace dcl {
         }
         std::vector<input_t>& vInputs = net_.getInputs();
         for (int n=0; n < images.size(); ++n) {
-            if (!vInputs[n].hasAipp()) {  // not aipp, manual preprocess
-                // resize + hwc2chw + BGR2RGB
-                return resizeCvtPaddingOp(images[n].data, images[n].c(), images[n].h(), images[n].w(),
-                                          static_cast<unsigned char*>(vInputs[n].data), vInputs[n].h(), vInputs[n].w(),
-                                          IMAGE_COLOR_BGR888_TO_RGB888_PLANAR, NONE);
-            } else { //  AIPP not support BGR2RGB
-                dcl::Mat img;
-                img.data = static_cast<unsigned char*>(vInputs[n].data);
-                img.channels = images[n].channels;
-                img.height = images[n].height;
-                img.width = images[n].width;
-                img.pixelFormat = DCL_PIXEL_FORMAT_RGB_888_PLANAR;
-                dcl::cvtColor(images[n], img, IMAGE_COLOR_BGR888_TO_RGB888_PLANAR);  // hwc -> chw and BGR -> RGB
-                // update input info with aipp
-                vInputs[n].update(img.c(), img.h(), img.w(), img.pixelFormat);
-            }
+            dcl::Mat img;
+            img.data = static_cast<unsigned char *>(vInputs[n].data);
+            img.phyAddr = vInputs[n].phyAddr;
+            img.channels = vInputs[n].c();
+            img.height = vInputs[n].h();
+            img.width = vInputs[n].w();
+            img.pixelFormat = DCL_PIXEL_FORMAT_RGB_888_PLANAR;
+            dclResizeCvtPaddingOp(images[n], img, NONE);
         }
         return 0;
     }

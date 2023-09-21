@@ -52,7 +52,8 @@ int main(int argc, char** argv) {
         goto exit;
     }
 
-    img = cvMatToDclMat(src);
+    img.create(src.rows, src.cols, DCL_PIXEL_FORMAT_BGR_888_PACKED);
+    memcpy(img.data, src.data, img.size());
 
     // load model
     if (0 != model.load(binFile)) {
@@ -61,11 +62,9 @@ int main(int argc, char** argv) {
     }
 
     // inference
-    for (int i=0; i<10; ++i) {
-        if (0 != model.inference(img, detections)) {
-            DCL_APP_LOG(DCL_ERROR, "Failed to inference");
-            goto exit;
-        }
+    if (0 != model.inference(img, detections)) {
+        DCL_APP_LOG(DCL_ERROR, "Failed to inference");
+        goto exit;
     }
 
     // unload
@@ -75,7 +74,6 @@ int main(int argc, char** argv) {
     }
 
     DCL_APP_LOG(DCL_INFO, "Found object num: %d", detections.size());
-
 
     for (const auto &detection: detections) {
         dcl::rectangle(img, dcl::Point(detection.box.x1, detection.box.y1),
@@ -103,6 +101,7 @@ int main(int argc, char** argv) {
 
 exit:
     src.release();
+    img.free();
     // sdk release
     dcl::deviceFinalize();
     return 0;

@@ -35,7 +35,8 @@ int main(int argc, char** argv) {
         goto exit;
     }
 
-    img = cvMatToDclMat(src);
+    img.create(src.rows, src.cols, DCL_PIXEL_FORMAT_BGR_888_PACKED);
+    memcpy(img.data, src.data, img.size());
 
     // load model
     if (0 != model.load(binFile)) {
@@ -60,6 +61,7 @@ int main(int argc, char** argv) {
 
 exit:
     src.release();
+    img.free();
     // sdk release
     dcl::deviceFinalize();
     return 0;

@@ -85,6 +85,7 @@ int main(int argc, char** argv) {
 
 exit:
     src.release();
+    img.free();
     // sdk release
     dcl::deviceFinalize();
     return 0;

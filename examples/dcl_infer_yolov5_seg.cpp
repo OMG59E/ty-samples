@@ -19,7 +19,7 @@ const static std::vector<cv::Scalar> palette = {cv::Scalar(  0,   0, 255), cv::S
 int main(int argc, char** argv) {
     if (argc != 5) {
         printf("input param num(%d) must be == 5,\n"
-               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path\n");
+               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path\n", argc);
         return -1;
     }
 

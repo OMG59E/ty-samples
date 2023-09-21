@@ -12,7 +12,7 @@
 int main(int argc, char** argv) {
     if (argc != 4) {
         printf("input param num(%d) must be == 4,\n"
-               "\t1 - sdk.config, 2 - model file path, 3 - num_iter for inference\n");
+               "\t1 - sdk.config, 2 - model file path, 3 - num_iter for inference\n", argc);
         return -1;
     }
 

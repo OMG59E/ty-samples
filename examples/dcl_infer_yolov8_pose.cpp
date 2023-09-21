@@ -46,6 +46,7 @@ int main(int argc, char** argv) {
     dcl::Mat img;
 
     cv::Mat src = cv::imread(imgPath);
+    dcl::Mat vis = cvMatToDclMat(src);
     if (src.empty()) {
         DCL_APP_LOG(DCL_ERROR, "Failed to read img, maybe filepath not exist -> %s", imgPath);
         goto exit;
@@ -76,7 +77,7 @@ int main(int argc, char** argv) {
 
 
     for (const auto &detection: detections) {
-        dcl::rectangle(img, dcl::Point(detection.box.x1, detection.box.y1),
+        dcl::rectangle(vis, dcl::Point(detection.box.x1, detection.box.y1),
                        dcl::Point(detection.box.x2, detection.box.y2), dcl::Color(0, 0, 255), 3);
 
         for (int k=0; k<19; ++k) {
@@ -85,7 +86,7 @@ int main(int argc, char** argv) {
             if (p1.score < 0.5f || p2.score < 0.5f)
                 continue;
             const dcl::Color& color = palette[pose_limb_color[k]];
-            dcl::lineBres(img, p1, p2, color, 3);
+            dcl::lineBres(vis, p1, p2, color, 3);
         }
 
         for (int k=0; k<17; ++k) {
@@ -93,7 +94,7 @@ int main(int argc, char** argv) {
             if (p.score < 0.5f)
                 continue;
             const dcl::Color& color = palette[pose_kpt_color[k]];
-            dcl::circle(img, p, 5, color, -1);
+            dcl::circle(vis, p, 5, color, -1);
         }
     }
 

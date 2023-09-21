@@ -63,8 +63,8 @@ int main(int argc, char** argv) {
     for (const auto& detection : detections) {
         DCL_APP_LOG(DCL_INFO, "object: %f %d %d %d %d %d", detection.conf, detection.cls,
                     detection.box.x1, detection.box.y1, detection.box.x2, detection.box.y2);
-        dcl::rectangle(img, dcl::Point(detection.box.x1, detection.box.y1),
-                       dcl::Point(detection.box.x2, detection.box.y2), dcl::Color(0, 0, 255), 3);
+        cv::rectangle(src, cv::Point(detection.box.x1, detection.box.y1),
+                      cv::Point(detection.box.x2, detection.box.y2), cv::Scalar(0, 0, 255), 2);
     }
 
     cv::imwrite(resFile, src);

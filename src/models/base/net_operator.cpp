@@ -256,8 +256,7 @@ namespace dcl {
             DCL_APP_LOG(DCL_INFO, "create data input[%d] success, nbDim: %d, shape: %s, dtype: %d, aipp: %d",
                         n, dims.dimCount, shape.c_str(), dclmdlGetInputDataType(desc_, n), input.aippIdx);
 
-            ret = dclrtMallocEx(&(input.data), &(input.phyAddr), input.dataSize*sizeof(uint8_t),
-                                16, DCL_MEM_MALLOC_NORMAL_ONLY);
+            ret = dclrtMallocEx(&(input.data), &(input.phyAddr), input.dataSize, 16, DCL_MEM_MALLOC_NORMAL_ONLY);
             if (DCL_SUCCESS != ret) {
                 DCL_APP_LOG(DCL_ERROR, "Failed to malloc data buffer without aipp, error code: %d", ret);
                 return -5;

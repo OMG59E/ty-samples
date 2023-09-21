@@ -11,8 +11,8 @@
 
 int main(int argc, char** argv) {
     if (argc != 4) {
-        DCL_APP_LOG(DCL_ERROR, "input param num(%d) must be == 4,\n"
-                               "\t1 - sdk.config, 2 - model file path, 3 - num_iter for inference", argc);
+        printf("input param num(%d) must be == 4,\n"
+               "\t1 - sdk.config, 2 - model file path, 3 - num_iter for inference\n");
         return -1;
     }
 

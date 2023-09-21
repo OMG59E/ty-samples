@@ -14,8 +14,8 @@
 
 int main(int argc, char** argv) {
     if (argc != 5) {
-        DCL_APP_LOG(DCL_ERROR, "input param num(%d) must be == 5,\n"
-                               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path", argc);
+        printf("input param num(%d) must be == 5,\n"
+               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path\n");
         return -1;
     }
 

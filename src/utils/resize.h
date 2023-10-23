@@ -14,6 +14,9 @@
 #include <cassert>
 #include <unistd.h>
 
+
+#define MAX(a, b)  a > b ? a : b
+
 namespace dcl {
     typedef enum {
         NONE = 0,
@@ -24,8 +27,9 @@ namespace dcl {
     static int resizeCvtPaddingOp(const unsigned char *in_data, int channels, int in_h, int in_w,
                                   unsigned char *out_data, int out_h, int out_w, colorSpace_t colorSpace,
                                   paddingType_t paddingType = NONE, unsigned char paddingValue = 114) {
-
-        float scale_x, scale_y;
+        float scale_x = float(in_w) / out_w;
+        float scale_y = float(in_h) / out_h;
+        float scale = scale_x > scale_y ? scale_x : scale_y;
         int offset_w, offset_h;
         int target_w, target_h;
         if (NONE == paddingType) {
@@ -36,33 +40,25 @@ namespace dcl {
             offset_w = 0;
             offset_h = 0;
         } else if (LEFT_TOP == paddingType) {
-            if (in_w > in_h) {
+            if (scale_x > scale_y) {
                 target_w = out_w;
-                scale_x = float(in_w) / target_w;
-                scale_y = scale_x;  // float(in_h) / target_h;
-                target_h = int(in_h / scale_y);
+                target_h = int(in_h / scale);
             } else {
                 target_h = out_h;
-                scale_y = float(in_h) / target_h;
-                scale_x = scale_y;
-                target_w = int(in_w / scale_x);
+                target_w = int(in_w / scale);
             }
             offset_w = 0;
             offset_h = 0;
             memset(out_data, paddingValue, out_w * out_h * channels);
         } else if (CENTER == paddingType) {
-            if (in_w > in_h) {
+            if (scale_x > scale_y) {
                 target_w = out_w;
-                scale_x = float(in_w) / target_w;
-                scale_y = scale_x;
-                target_h = int(in_h / scale_y);
+                target_h = int(in_h / scale);
                 offset_w = 0;
                 offset_h = (out_h - target_h) / 2;
             } else {
                 target_h = out_h;
-                scale_y = float(in_h) / target_h;
-                scale_x = scale_y;
-                target_w = int(in_w / scale_x);
+                target_w = int(in_w / scale);
                 offset_w = (out_w - target_w) / 2;
                 offset_h = 0;
             }
@@ -136,7 +132,9 @@ namespace dcl {
 
     static int dclResizeCvtPaddingOp(const dcl::Mat& src, dcl::Mat &dst,
                                      paddingType_t paddingType = NONE, unsigned char paddingValue = 114) {
-        float scale_x, scale_y;
+        float scale_x = float(src.w()) / dst.w();
+        float scale_y = float(src.h()) / dst.h();
+        float scale = scale_x > scale_y ? scale_x : scale_y;
         int padding_left, padding_top, padding_right, padding_bottom;
         int target_w, target_h;
         if (NONE == paddingType) {
@@ -149,38 +147,28 @@ namespace dcl {
         } else if (LEFT_TOP == paddingType) {
             padding_left = 0;
             padding_top = 0;
-            if (src.w() > src.h()) {
+            if (scale_x > scale_y) {
                 target_w = dst.w();
-                scale_x = float(src.w()) / target_w;
-                scale_y = scale_x;  // float(in_h) / target_h;
-                target_h = int(src.h() / scale_y);
+                target_h = int(src.h() / scale);
                 padding_right = 0;
                 padding_bottom = dst.h() - target_h;
             } else {
                 target_h = dst.h();
-                scale_y = float(src.h()) / target_h;
-                scale_x = scale_y;
-                target_w = int(src.w() / scale_x);
+                target_w = int(src.w() / scale);
                 padding_right = dst.w() - target_w;
                 padding_bottom = 0;
             }
         } else if (CENTER == paddingType) {
-            if (src.w() > src.h()) {
+            if (scale_x > scale_y) {
                 target_w = dst.w();
-                scale_x = float(src.w()) / target_w;
-                scale_y = scale_x;
-                target_h = int(src.h() / scale_y);
-
+                target_h = int(src.h() / scale);
                 padding_left = 0;
                 padding_top = (dst.h() - target_h) / 2;
                 padding_right = 0;
                 padding_bottom = dst.h() - target_h - padding_top;
             } else {
                 target_h = dst.h();
-                scale_y = float(src.h()) / target_h;
-                scale_x = scale_y;
-                target_w = int(src.w() / scale_x);
-
+                target_w = int(src.w() / scale);
                 padding_left = (dst.w() - target_w) / 2;
                 padding_top = 0;
                 padding_right = dst.w() - target_w - padding_left;

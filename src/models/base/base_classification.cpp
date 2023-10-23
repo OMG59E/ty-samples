@@ -61,8 +61,9 @@ namespace dcl {
         duration<float, std::micro> tp0 = t1 - t0;
         duration<float, std::micro> tp1 = t2 - t1;
         duration<float, std::micro> tp2 = t3 - t2;
-        DCL_APP_LOG(DCL_INFO, "preprocess: %.3fms, inference: %.3fms, postprocess: %.3fms",
-                    tp0.count() / 1000.0f, tp1.count() / 1000.0f, tp2.count() / 1000.0f);
+        duration<float, std::micro> tp3 = tp0 + tp1 + tp2;
+        DCL_APP_LOG(DCL_INFO, "preprocess: %.3fms, inference: %.3fms, postprocess: %.3fms, total: %.3fms",
+                    tp0.count() / 1000.0f, tp1.count() / 1000.0f, tp2.count() / 1000.0f, tp3.count() / 1000.0f);;
         return 0;
     }
 

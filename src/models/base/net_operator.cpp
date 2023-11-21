@@ -175,18 +175,7 @@ namespace dcl {
                 vOutputTensors[i].d[j] = int(vOutputDims_[i].dims[j]);
             dclFormat format = dclmdlGetOutputFormat(desc_, i);
             dclDataType datatype = dclmdlGetOutputDataType(desc_, i);
-            if (DCL_FLOAT16 == datatype) {
-                // TODO fp16 -> fp32
-
-            } else if (DCL_FLOAT == datatype) {
-                // nothing
-            } else if (DCL_INT32 == datatype) {
-                vOutputTensors[i].dataType = DCL_INT32;
-            } else {
-                DCL_APP_LOG(DCL_ERROR, "Not support data type %d", datatype);
-                return -5;
-            }
-
+            vOutputTensors[i].dataType = datatype;
             if (DCL_FORMAT_NCHW == format || DCL_FORMAT_UNDEFINED == format)
                 vOutputTensors[i].dataLayout = DCL_FORMAT_NCHW;
             else if (DCL_FORMAT_NHWC == format)

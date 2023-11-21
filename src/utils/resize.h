@@ -43,9 +43,11 @@ namespace dcl {
             if (scale_x > scale_y) {
                 target_w = out_w;
                 target_h = int(in_h / scale);
+                scale_y = scale;
             } else {
                 target_h = out_h;
                 target_w = int(in_w / scale);
+                scale_x = scale;
             }
             offset_w = 0;
             offset_h = 0;
@@ -56,11 +58,13 @@ namespace dcl {
                 target_h = int(in_h / scale);
                 offset_w = 0;
                 offset_h = (out_h - target_h) / 2;
+                scale_y = scale;
             } else {
                 target_h = out_h;
                 target_w = int(in_w / scale);
                 offset_w = (out_w - target_w) / 2;
                 offset_h = 0;
+                scale_x = scale;
             }
             memset(out_data, paddingValue, out_w * out_h * channels);
         } else {

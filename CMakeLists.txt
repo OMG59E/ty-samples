@@ -1,34 +1,41 @@
 cmake_minimum_required(VERSION 2.8.12)
+cmake_policy(SET CMP0048 NEW)
 project(dcl_wrapper C CXX)
 
-set(DENGINE_ROOT /DEngine)
-set(HCP_PATH ${DENGINE_ROOT}/tyhcp)
+set(HCP_INC_PATH /app/include/hcp)
+set(HAL_INC_PATH /app/include/hal)
+set(MAL_INC_PATH /app/include/mal)
+set(HCP_LIB_PATH /app/lib/hcp)
+set(HAL_LIB_PATH /app/lib/hal)
+set(MAL_LIB_PATH /app/lib/mal)
+set(OPENCV_PATH 3rdparty/opencv)
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "-O0 -g -std=c++11 -w -fPIC")
+    set(CMAKE_CXX_FLAGS "-O0 -g -std=c++14 -w -fPIC")
 else()
-    set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -w -fPIC")
+    set(CMAKE_CXX_FLAGS "-O2 -std=c++14 -w -fPIC")
 endif()
 
-set(HCP_LIB_PATH ${HCP_PATH}/a55/aarch64-linux-gcc9.2.1/lib)
-set(DPF_LIB_PATH ${DENGINE_ROOT}/tydpf/a55/aarch64-linux-gcc9.2.1/lib)
-set(OPENCV_PATH /mnt/modelzoo/3rdparty/opencv)
-
-include_directories(${HCP_PATH}/include/dcl)
-include_directories(src/graph/include)
-include_directories(src/common)
-include_directories(src/utils)
-include_directories(src)
+include_directories(/DEngine/tyhcp/include/dcl)
+include_directories(${HCP_INC_PATH})
+include_directories(${HAL_INC_PATH})
+include_directories(${MAL_INC_PATH})
 include_directories(${OPENCV_PATH}/include)
 include_directories(${OPENCV_PATH}/include/opencv4)
 
+include_directories(src/common)
+include_directories(src/utils)
+include_directories(src)
+
 link_directories(${HCP_LIB_PATH})
-link_directories(${DPF_LIB_PATH})
+link_directories(${HAL_LIB_PATH})
+link_directories(${MAL_LIB_PATH})
 link_directories(${OPENCV_PATH}/lib)
 
 add_subdirectory(src)
 add_subdirectory(examples)
 add_subdirectory(tools)
+add_subdirectory(3rdparty/pybind11)
 
 list(APPEND SDK_LIBS ty_dcl)
 list(APPEND SDK_LIBS ty_common)
@@ -48,8 +55,11 @@ list(APPEND OPENCV_LIBS opencv_imgproc)
 list(APPEND OPENCV_LIBS opencv_imgcodecs)
 
 add_library(${PROJECT_NAME} SHARED ${DCL_SOURCES})
-
 target_link_libraries(${PROJECT_NAME} ${SDK_LIBS} ${OPENCV_LIBS} pthread dl)
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/python)
+pybind11_add_module(pymz SHARED python/pymz.cpp)
+target_link_libraries(pymz PUBLIC ${PROJECT_NAME})
 
 foreach(EXAMPLE_NAME ${EXAMPLE_SOURCES})
     #unpack the dir "/"

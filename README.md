@@ -7,6 +7,7 @@
 ```
 modelzoo
 ├── examples      c++模型示例
+├── python
 ├── src           源码目录
 │   ├── codecs    jpeg编解码模块(暂不能用)
 │   ├── models    模型推理实现模块
@@ -20,20 +21,10 @@ modelzoo
 
 ## 使用说明
 
-依赖TyHCP环境，首先需要配置环境变量
-
 ```shell
-cd /DEngine/tyhcp/
-source env_host.sh  # 无需重复
-```
-
-### 编译
-
-在主控端TyHCP容器内
-
-```shell
-cd /DEngine/tyexamples/modelzoo/
-sh build.sh
+apt update
+apt install cmake gcc g++ make python3.8-dev
+pip3 install opencv-python==4.5.2.54 numpy
 ```
 
 ### 执行

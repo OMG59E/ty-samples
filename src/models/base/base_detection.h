@@ -56,9 +56,15 @@ namespace dcl {
          */
         virtual int unload();
 
+        void set_iou_threshold(float iou_threshold)  { iou_threshold_ = iou_threshold; }
+
+        void set_conf_threshold(float conf_threshold) { conf_threshold_ = conf_threshold; }
+
     protected:
         std::vector<dcl::Tensor> vOutputTensors_;
         NetOperator net_;
+        float iou_threshold_{0.45f};
+        float conf_threshold_{0.25f};
     };
 }
 #endif //DCL_WRAPPER_BASE_DETECTION_H

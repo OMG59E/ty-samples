@@ -188,7 +188,7 @@ namespace dcl {
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         duration<float, std::micro> tp0 = t1 - t0;
         duration<float, std::micro> tp1 = t2 - t1;
-        DCL_APP_LOG(DCL_INFO, "Execute: %.3fms, GetOutput: %.3fms", tp0.count() / 1000.0f, tp1.count() / 1000.0f);
+        DCL_APP_LOG(DCL_DEBUG, "Execute: %.3fms, GetOutput: %.3fms", tp0.count() / 1000.0f, tp1.count() / 1000.0f);
         return 0;
     }
 

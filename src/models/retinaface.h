@@ -41,8 +41,6 @@ namespace dcl {
 
     private:
         const int input_sizes_[2] = {640, 640}; // wh
-        const float iou_threshold_{0.45f};
-        const float conf_threshold_{0.50f};
         const float min_sizes_[6] = {16.0f, 32.0f, 64.0f, 128.0f, 256.0f, 512.0f};
         const float offsets_[3] = {0.5f, 0.5f, 0.5f};
         const int steps_[6] = {8, 8, 16, 16, 32, 32};

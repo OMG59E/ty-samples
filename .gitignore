@@ -4,3 +4,10 @@ build_x86_64
 cmake-build*
 3rdparty/opencv*
 data
+*.txt
+*.json
+*.so
+*.png
+*.pyc
+*.tar.gz
+*.tar

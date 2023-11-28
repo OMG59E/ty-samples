@@ -210,6 +210,20 @@ namespace dcl {
         float mask[32]{};
         dcl::Mat prob;
         std::vector<contour_t> contours;
+
+        std::vector<Point> getPts() {
+            std::vector<Point> vp;
+            for (auto & pt : pts)
+                vp.emplace_back(pt);
+            return vp;
+        }
+
+        std::vector<Point> getKpts() {
+            std::vector<Point> vp;
+            for (auto & kpt : kpts)
+                vp.emplace_back(kpt);
+            return vp;
+        }
     } detection_t;
 
     typedef struct {

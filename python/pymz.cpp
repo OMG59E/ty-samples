@@ -9,30 +9,31 @@
 #include <utility>
 
 #include "dcl_base.h"
-#include "models/yolov5.h"
-#include "macro.h"
 #include "device.h"
-
+#include "models/yolov3.h"
+#include "models/yolov5.h"
+#include "models/yolov6.h"
+#include "models/yolov7.h"
+#include "models/yolov8.h"
 
 namespace py {
-
+    // YOLOv5
     class YoloV5 {
     public:
-        int load(const std::string &modelPath) {
-            m_ = std::make_unique<dcl::YoloV5>();
+        virtual int load(const std::string &modelPath) {
             input_.create(MAX_IMAGE_H, MAX_IMAGE_W, DCL_PIXEL_FORMAT_BGR_888_PACKED);
-            return m_->load(modelPath);
+            return m_.load(modelPath);
         }
 
-        void set_iou_threshold(float iou_threshold) { m_->set_iou_threshold(iou_threshold); }
-        void set_conf_threshold(float conf_threshold) { m_->set_conf_threshold(conf_threshold); }
+        virtual void set_iou_threshold(float iou_threshold) { m_.set_iou_threshold(iou_threshold); }
+        virtual void set_conf_threshold(float conf_threshold) { m_.set_conf_threshold(conf_threshold); }
 
         /**
          *
          * @param cv_image  opencv img, format: H,W,C  BGR
          * @return
          */
-        std::vector<dcl::detection_t> &inference(const pybind11::array &cv_image) {
+        virtual std::vector<ty::detection_t> &inference(const pybind11::array &cv_image) {
             detections_.clear();
             auto buf = cv_image.request();
             if (buf.shape[0] > MAX_IMAGE_H || buf.shape[1] > MAX_IMAGE_W) {
@@ -47,19 +48,48 @@ namespace py {
                 input_.width = buf.shape[1];
                 input_.channels = buf.shape[2];
                 input_.pixelFormat = DCL_PIXEL_FORMAT_BGR_888_PACKED;
-                if (0 != m_->inference(input_, detections_)) {
+                if (0 != m_.inference(input_, detections_)) {
                     DCL_APP_LOG(DCL_ERROR, "Failed to inference");
                 }
             }
             return detections_;
         }
 
-        int unload() { return m_->unload(); }
+        virtual int unload() {
+            input_.free();
+            return m_.unload();
+        }
+
+    protected:
+        ty::Mat input_;
+        std::vector<ty::detection_t> detections_;
 
     private:
-        dcl::Mat input_;
-        std::vector<dcl::detection_t> detections_;
-        std::unique_ptr<dcl::YoloV5> m_;
+        ty::YoloV5 m_;
+    };
+
+    // YOLOv6
+    class YoloV6 : public YoloV5 {
+    private:
+        ty::YoloV6 m_;
+    };
+
+    // YOLOv7
+    class YoloV7 : public YoloV5 {
+    private:
+        ty::YoloV7 m_;
+    };
+
+    // YOLOv8
+    class YoloV8 : public YoloV5 {
+    private:
+        ty::YoloV8 m_;
+    };
+
+    // YOLOv3
+    class YoloV3 : public YoloV5 {
+    private:
+        ty::YoloV3 m_;
     };
 }
 
@@ -67,7 +97,7 @@ namespace py {
 PYBIND11_MODULE(pymz, m) {
     m.doc() = "Python bindings for modelzoo";
 
-    pybind11::enum_<dcl::pixelFormat_t>(m, "PixelFormat")
+    pybind11::enum_<ty::pixelFormat_t>(m, "PixelFormat")
             .value("DCL_PIXEL_FORMAT_YUV_400", dclPixelFormat::DCL_PIXEL_FORMAT_YUV_400)
             .value("DCL_PIXEL_FORMAT_YUV_SEMIPLANAR_420", dclPixelFormat::DCL_PIXEL_FORMAT_YUV_SEMIPLANAR_420)
             .value("DCL_PIXEL_FORMAT_YVU_SEMIPLANAR_420", dclPixelFormat::DCL_PIXEL_FORMAT_YVU_SEMIPLANAR_420)
@@ -138,67 +168,79 @@ PYBIND11_MODULE(pymz, m) {
             .value("DCL_PIXEL_FORMAT_UNKNOWN", dclPixelFormat::DCL_PIXEL_FORMAT_UNKNOWN)
             .export_values();
 
-    pybind11::class_<dcl::Mat>(m, "Mat")
-            .def(pybind11::init())
-            .def(pybind11::init<int, int, dcl::pixelFormat_t>())
-            .def("create", &dcl::Mat::create)
-            .def("free", &dcl::Mat::free)
-            .def("empty", &dcl::Mat::empty)
-            .def("c", &dcl::Mat::c)
-            .def("h", &dcl::Mat::h)
-            .def("w", &dcl::Mat::w)
-            .def("size", &dcl::Mat::size)
-            .def_readwrite("channels", &dcl::Mat::channels)
-            .def_readwrite("height", &dcl::Mat::height)
-            .def_readwrite("width", &dcl::Mat::width)
-            .def_readwrite("pixelFormat", &dcl::Mat::pixelFormat);
+    pybind11::class_<ty::Mat>(m, "Mat")
+            .def(pybind11::init<>())
+            .def(pybind11::init<int, int, ty::pixelFormat_t>())
+            .def("create", &ty::Mat::create)
+            .def("free", &ty::Mat::free)
+            .def("empty", &ty::Mat::empty)
+            .def("c", &ty::Mat::c)
+            .def("h", &ty::Mat::h)
+            .def("w", &ty::Mat::w)
+            .def("size", &ty::Mat::size)
+            .def_readwrite("channels", &ty::Mat::channels)
+            .def_readwrite("height", &ty::Mat::height)
+            .def_readwrite("width", &ty::Mat::width)
+            .def_readwrite("pixelFormat", &ty::Mat::pixelFormat);
 
-    pybind11::class_<dcl::Point>(m, "Point")
-            .def(pybind11::init())
+    pybind11::class_<ty::Point>(m, "Point")
+            .def(pybind11::init<>())
             .def(pybind11::init<int, int>())
-            .def_readwrite("x", &dcl::Point::x)
-            .def_readwrite("y", &dcl::Point::y);
+            .def_readwrite("x", &ty::Point::x)
+            .def_readwrite("y", &ty::Point::y);
 
-    pybind11::class_<dcl::Color>(m, "Color")
-            .def(pybind11::init())
+    pybind11::class_<ty::Color>(m, "Color")
+            .def(pybind11::init<>())
             .def(pybind11::init<int, int, int>())
-            .def_readwrite("b", &dcl::Color::b)
-            .def_readwrite("g", &dcl::Color::g)
-            .def_readwrite("r", &dcl::Color::r);
+            .def_readwrite("b", &ty::Color::b)
+            .def_readwrite("g", &ty::Color::g)
+            .def_readwrite("r", &ty::Color::r);
 
-    pybind11::class_<dcl::Box>(m, "Box")
-            .def(pybind11::init())
+    pybind11::class_<ty::Box>(m, "Box")
+            .def(pybind11::init<>())
             .def(pybind11::init<int, int, int, int>())
-            .def_readwrite("x1", &dcl::Box::x1)
-            .def_readwrite("y1", &dcl::Box::y1)
-            .def_readwrite("x2", &dcl::Box::x2)
-            .def_readwrite("y2", &dcl::Box::y2)
-            .def("cx", &dcl::Box::cx)
-            .def("cy", &dcl::Box::cy)
-            .def("x", &dcl::Box::x)
-            .def("y", &dcl::Box::y)
-            .def("w", &dcl::Box::w)
-            .def("h", &dcl::Box::h);
+            .def_readwrite("x1", &ty::Box::x1)
+            .def_readwrite("y1", &ty::Box::y1)
+            .def_readwrite("x2", &ty::Box::x2)
+            .def_readwrite("y2", &ty::Box::y2)
+            .def("cx", &ty::Box::cx)
+            .def("cy", &ty::Box::cy)
+            .def("x", &ty::Box::x)
+            .def("y", &ty::Box::y)
+            .def("w", &ty::Box::w)
+            .def("h", &ty::Box::h);
 
-    pybind11::class_<dcl::detection_t>(m, "Detection")
-            .def(pybind11::init())
-            .def_readwrite("conf", &dcl::detection_t::conf)
-            .def_readwrite("cls", &dcl::detection_t::cls)
-            .def_readwrite("name", &dcl::detection_t::name)
-            .def_readwrite("box", &dcl::detection_t::box)
-            .def_readwrite("contours", &dcl::detection_t::contours)
-            .def("get_pts", &dcl::detection_t::getPts)
-            .def("get_kpts", &dcl::detection_t::getKpts)
-            .def_readwrite("prob", &dcl::detection_t::prob);
+    pybind11::class_<ty::detection_t>(m, "Detection")
+            .def(pybind11::init<>())
+            .def_readwrite("conf", &ty::detection_t::conf)
+            .def_readwrite("cls", &ty::detection_t::cls)
+            .def_readwrite("name", &ty::detection_t::name)
+            .def_readwrite("box", &ty::detection_t::box)
+            .def_readwrite("contours", &ty::detection_t::contours)
+            .def("get_pts", &ty::detection_t::getPts)
+            .def("get_kpts", &ty::detection_t::getKpts)
+            .def_readwrite("prob", &ty::detection_t::prob);
 
-    m.def("dcl_init", &dcl::deviceInit);
-    m.def("dcl_finalize", &dcl::deviceFinalize);
+    m.def("dcl_init", &ty::deviceInit);
+    m.def("dcl_finalize", &ty::deviceFinalize);
 
     pybind11::class_<py::YoloV5>(m, "YOLOv5")
-            .def(pybind11::init())
+            .def(pybind11::init<>())
             .def("load", &py::YoloV5::load)
             .def("unload", &py::YoloV5::unload)
             .def("set_iou_threshold", &py::YoloV5::set_iou_threshold)
             .def("set_conf_threshold", &py::YoloV5::set_conf_threshold)
             .def("inference", &py::YoloV5::inference);
+
+    pybind11::class_<py::YoloV6, py::YoloV5>(m, "YOLOv6")
+            .def(pybind11::init<>());
+
+    pybind11::class_<py::YoloV7, py::YoloV5>(m, "YOLOv7")
+            .def(pybind11::init<>());
+
+    pybind11::class_<py::YoloV8, py::YoloV5>(m, "YOLOv8")
+            .def(pybind11::init<>());
+
+    pybind11::class_<py::YoloV3, py::YoloV5>(m, "YOLOv3")
+            .def(pybind11::init<>());
 }

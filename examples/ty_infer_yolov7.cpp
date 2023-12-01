@@ -1,11 +1,8 @@
 //
-// Created by intellif on 23-4-24.
+// Created  on 22-9-21.
 //
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgcodecs/imgcodecs.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
-#include "models/yolov8.h"
+#include "models/yolov7.h"
 #include "utils/device.h"
 #include "utils/utils.h"
 #include "utils/image.h"
@@ -25,11 +22,11 @@ int main(int argc, char** argv) {
     const char *resFile = argv[4];
 
     // sdk init
-    dcl::deviceInit(sdkCfg);
+    ty::deviceInit(sdkCfg);
 
-    dcl::YoloV8 model;
-    std::vector<dcl::detection_t> detections;
-    dcl::Mat img;
+    ty::YoloV7 model;
+    std::vector<ty::detection_t> detections;
+    ty::Mat img;
 
     cv::Mat src = cv::imread(imgPath);
     if (src.empty()) {
@@ -71,6 +68,6 @@ exit:
     src.release();
     img.free();
     // sdk release
-    dcl::deviceFinalize();
+    ty::deviceFinalize();
     return 0;
 }

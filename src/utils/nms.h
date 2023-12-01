@@ -10,7 +10,7 @@
 #include <algorithm>
 
 
-inline float bbox_overlap(const dcl::Box &vi, const dcl::Box &vo) {
+inline float bbox_overlap(const ty::Box &vi, const ty::Box &vo) {
     int xx1 = std::max(vi.x1, vo.x1);
     int yy1 = std::max(vi.y1, vo.y1);
     int xx2 = std::min(vi.x2, vo.x2);
@@ -28,14 +28,14 @@ inline float bbox_overlap(const dcl::Box &vi, const dcl::Box &vo) {
 }
 
 
-static int non_max_suppression2(std::vector<dcl::detection_t> &detections, const float iou_threshold) {
+static int non_max_suppression2(std::vector<ty::detection_t> &detections, const float iou_threshold) {
     // sort
     std::sort(detections.begin(), detections.end(),
-              [](const dcl::detection_t &d1, const dcl::detection_t &d2) { return d1.conf > d2.conf; });
+              [](const ty::detection_t &d1, const ty::detection_t &d2) { return d1.conf > d2.conf; });
 
     // nms
-    std::vector<dcl::detection_t> keep_detections;
-    std::vector<dcl::detection_t> tmp_detections;
+    std::vector<ty::detection_t> keep_detections;
+    std::vector<ty::detection_t> tmp_detections;
     keep_detections.clear();
     while (!detections.empty()) {
         if (detections.size() == 1) {
@@ -57,13 +57,13 @@ static int non_max_suppression2(std::vector<dcl::detection_t> &detections, const
     return 0;
 }
 
-static int non_max_suppression(std::vector<dcl::detection_t> &detections, const float iou_threshold) {
+static int non_max_suppression(std::vector<ty::detection_t> &detections, const float iou_threshold) {
     // sort
     std::sort(detections.begin(), detections.end(),
-              [](const dcl::detection_t &d1, const dcl::detection_t &d2) { return d1.conf > d2.conf; });
+              [](const ty::detection_t &d1, const ty::detection_t &d2) { return d1.conf > d2.conf; });
 
     // nms
-    std::vector<dcl::detection_t> keep_detections;
+    std::vector<ty::detection_t> keep_detections;
     bool *suppressed = new bool[detections.size()];
     memset(suppressed, 0, sizeof(bool) * detections.size());
     const int num_detections = detections.size();

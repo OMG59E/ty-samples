@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace dcl {
+namespace ty {
     static const std::vector<std::string> ageList = {"AgeLess18", "Age18-60", "AgeOver60"};
     static const std::vector<std::string> directList = {"Front", "Side", "Back"};
     static const std::vector<std::string> bagList = {"HandBag", "ShoulderBag", "Backpack"};
@@ -18,9 +18,9 @@ namespace dcl {
 
     class PPLCNet : public BaseClassifier {
     public:
-        int preprocess(const std::vector<dcl::Mat> &images) override;
+        int preprocess(const std::vector<ty::Mat> &images) override;
 
-        int postprocess(const std::vector<dcl::Mat> &images, std::vector<classification_t> &outputs) override;
+        int postprocess(const std::vector<ty::Mat> &images, std::vector<classification_t> &outputs) override;
     private:
         float threshold_{0.5f};
         float glasses_threshold_{0.3f};

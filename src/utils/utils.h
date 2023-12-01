@@ -69,8 +69,8 @@ static int readBinFile(const std::string &fileName, void *&inputBuff, uint32_t &
     return 0;
 }
 
-static dcl::Mat cvMatToDclMat(const cv::Mat& cvMat) {
-    dcl::Mat dclMat;
+static ty::Mat cvMatToDclMat(const cv::Mat& cvMat) {
+    ty::Mat dclMat;
     dclMat.data = cvMat.data;
     dclMat.channels = cvMat.channels();
     dclMat.height = cvMat.rows;

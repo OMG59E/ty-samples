@@ -7,7 +7,7 @@
 
 #include "base/base_classification.h"
 
-namespace dcl {
+namespace ty {
     class ResNet : public BaseClassifier {
 
     };

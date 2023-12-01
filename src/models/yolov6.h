@@ -7,7 +7,7 @@
 
 #include "yolov5.h"
 
-namespace dcl {
+namespace ty {
     class YoloV6 : public YoloV5 {
     private:
         int min_wh_{2};

@@ -12,8 +12,8 @@
 #define rfpart(x) (1.0f - fpart(x))
 
 
-namespace dcl {
-    static inline void setPixel(const dcl::Mat &src, int x, int y, const dcl::Color &color) {
+namespace ty {
+    static inline void setPixel(const ty::Mat &src, int x, int y, const ty::Color &color) {
         const int W = src.w();
         const int C = src.c();
         src.data[y * W * C + x * C + 0] = (unsigned char) (color.b);
@@ -21,7 +21,7 @@ namespace dcl {
         src.data[y * W * C + x * C + 2] = (unsigned char) (color.r);
     }
 
-    static inline void setPixelHorWidth(const dcl::Mat &src, int x, int y, const dcl::Color &color, int thickness) {
+    static inline void setPixelHorWidth(const ty::Mat &src, int x, int y, const ty::Color &color, int thickness) {
         const int W = src.w();
         const int C = src.c();
         while (thickness--) {
@@ -31,7 +31,7 @@ namespace dcl {
         }
     }
 
-    static inline void setPixeVerWidth(const dcl::Mat &src, int x, int y, const dcl::Color &color, int thickness) {
+    static inline void setPixeVerWidth(const ty::Mat &src, int x, int y, const ty::Color &color, int thickness) {
         const int W = src.w();
         const int C = src.c();
         while (thickness--) {
@@ -41,7 +41,7 @@ namespace dcl {
         }
     }
 
-    static inline void setPixelAlpha(const dcl::Mat &src, int x, int y, const dcl::Color &color, float alpha) {
+    static inline void setPixelAlpha(const ty::Mat &src, int x, int y, const ty::Color &color, float alpha) {
         const int W = src.w();
         const int C = src.c();
         src.data[y * W * C + x * C + 0] = (unsigned char) (src.data[y * W * C + x * C + 0] * (1 - alpha) + color.b * alpha);
@@ -49,8 +49,8 @@ namespace dcl {
         src.data[y * W * C + x * C + 2] = (unsigned char) (src.data[y * W * C + x * C + 2] * (1 - alpha) + color.r * alpha);
     }
 
-    static void lineBres(const dcl::Mat &src, const dcl::Point &p1, const dcl::Point &p2,
-                         const dcl::Color &color, int thickness) {
+    static void lineBres(const ty::Mat &src, const ty::Point &p1, const ty::Point &p2,
+                         const ty::Color &color, int thickness) {
         int x0 = p1.x;
         int y0 = p1.y;
         int x1 = p2.x;
@@ -110,8 +110,8 @@ namespace dcl {
         }
     }
 
-    static void lineAnti_Wu(const dcl::Mat &src, const dcl::Point &p1, const dcl::Point &p2,
-                            const dcl::Color &color) {
+    static void lineAnti_Wu(const ty::Mat &src, const ty::Point &p1, const ty::Point &p2,
+                            const ty::Color &color) {
         int x0 = p1.x;
         int y0 = p1.y;
         int x1 = p2.x;
@@ -158,8 +158,8 @@ namespace dcl {
     }
 
     // 吴小琳抗锯齿任意宽度
-    static void lineAnti_WuMulti(const dcl::Mat &src, const dcl::Point &p1, const dcl::Point &p2,
-                                 const dcl::Color &color, int thickness) {
+    static void lineAnti_WuMulti(const ty::Mat &src, const ty::Point &p1, const ty::Point &p2,
+                                 const ty::Color &color, int thickness) {
         int x0 = p1.x;
         int y0 = p1.y;
         int x1 = p2.x;
@@ -214,8 +214,8 @@ namespace dcl {
     }
 
     // 高斯核进行权重划分  边缘锐化效果
-    static void lineAnti_AreaWeight(const dcl::Mat &src, const dcl::Point &p1, const dcl::Point &p2,
-                                    const dcl::Color &color, int thickness) {
+    static void lineAnti_AreaWeight(const ty::Mat &src, const ty::Point &p1, const ty::Point &p2,
+                                    const ty::Color &color, int thickness) {
 
 #if 1
         //int weight[5][5] = { { 1, 2, 4, 2, 1 }, { 2, 5,6,5, 2 }, { 4, 6, 8,6,4 },{2,5,6,5,2 },{1,2,4,2,1} };

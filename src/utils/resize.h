@@ -17,7 +17,7 @@
 
 #define MAX(a, b)  a > b ? a : b
 
-namespace dcl {
+namespace ty {
     typedef enum {
         NONE = 0,
         LEFT_TOP,
@@ -134,7 +134,7 @@ namespace dcl {
         return 0;
     }
 
-    static int dclResizeCvtPaddingOp(const dcl::Mat& src, dcl::Mat &dst,
+    static int dclResizeCvtPaddingOp(const ty::Mat& src, ty::Mat &dst,
                                      paddingType_t paddingType = NONE, unsigned char paddingValue = 114) {
         float scale_x = float(src.w()) / dst.w();
         float scale_y = float(src.h()) / dst.h();

@@ -5,15 +5,15 @@
 #include "utils/resize.h"
 
 
-namespace dcl {
-    int PPLCNet::preprocess(const std::vector<dcl::Mat> &images) {
+namespace ty {
+    int PPLCNet::preprocess(const std::vector<ty::Mat> &images) {
         if (images.size() != net_.getInputNum()) {
             DCL_APP_LOG(DCL_ERROR, "images size[%d] != model input size[%d]", images.size(), net_.getInputNum());
             return -1;
         }
         std::vector<input_t>& vInputs = net_.getInputs();
         for (int n=0; n < images.size(); ++n) {
-            dcl::Mat img;
+            ty::Mat img;
             img.data = static_cast<unsigned char *>(vInputs[n].data);
             img.phyAddr = vInputs[n].phyAddr;
             img.channels = vInputs[n].c();
@@ -25,7 +25,7 @@ namespace dcl {
         return 0;
     }
 
-    int PPLCNet::postprocess(const std::vector<dcl::Mat> &images, std::vector<classification_t> &outputs) {
+    int PPLCNet::postprocess(const std::vector<ty::Mat> &images, std::vector<classification_t> &outputs) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
@@ -36,7 +36,7 @@ namespace dcl {
             return -2;
         }
 
-        const dcl::Tensor &tensor = vOutputTensors_[0];
+        const ty::Tensor &tensor = vOutputTensors_[0];
         auto* data = (float*)(tensor.data);  // 1, 26
         uint8_t len = tensor.d[1];
 

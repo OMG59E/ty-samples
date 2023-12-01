@@ -7,7 +7,7 @@
 
 #include "base/base_detection.h"
 
-namespace dcl {
+namespace ty {
     class Detr : public BaseDetector {
     public:
 
@@ -16,7 +16,7 @@ namespace dcl {
          * @param images
          * @return
          */
-        int preprocess(const std::vector<dcl::Mat> &images) override;
+        int preprocess(const std::vector<ty::Mat> &images) override;
 
         /**
          *
@@ -24,7 +24,7 @@ namespace dcl {
          * @param detections
          * @return
          */
-        int postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) override;
+        int postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) override;
 
     private:
         int min_wh_{2};

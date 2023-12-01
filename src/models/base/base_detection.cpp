@@ -4,21 +4,21 @@
 
 #include "base_detection.h"
 
-namespace dcl {
+namespace ty {
     int BaseDetector::load(const std::string &modelPath) {
         return net_.load(modelPath);
     }
 
-    int BaseDetector::preprocess(const std::vector<dcl::Mat> &images) {
+    int BaseDetector::preprocess(const std::vector<ty::Mat> &images) {
         return 0;
     }
 
-    int BaseDetector::inference(const dcl::Mat &image, std::vector<detection_t> &outputs) {
-        std::vector<dcl::Mat> images = {image};
+    int BaseDetector::inference(const ty::Mat &image, std::vector<detection_t> &outputs) {
+        std::vector<ty::Mat> images = {image};
         return inference(images, outputs);
     }
 
-    int BaseDetector::inference(const std::vector<dcl::Mat> &images, std::vector<detection_t> &outputs) {
+    int BaseDetector::inference(const std::vector<ty::Mat> &images, std::vector<detection_t> &outputs) {
         for (auto& image : images) {
             if (image.size() > MAX_IMAGE_SIZE) {
                 DCL_APP_LOG(DCL_ERROR, "Not support image size: %d, and max support image size: %d",

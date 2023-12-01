@@ -10,7 +10,7 @@
 #include "utils/resize.h"
 #include "net_operator.h"
 
-namespace dcl {
+namespace ty {
     class BaseClassifier {
     public:
         /**
@@ -26,7 +26,7 @@ namespace dcl {
          * @param images
          * @return
          */
-        virtual int preprocess(const std::vector<dcl::Mat> &images);
+        virtual int preprocess(const std::vector<ty::Mat> &images);
 
         /**
          * model inference for signal input
@@ -34,7 +34,7 @@ namespace dcl {
          * @param outputs
          * @return
          */
-        virtual int inference(const dcl::Mat &image, std::vector<classification_t> &outputs);
+        virtual int inference(const ty::Mat &image, std::vector<classification_t> &outputs);
 
         /**
          * model inference for multi-input
@@ -42,7 +42,7 @@ namespace dcl {
          * @param detections
          * @return
          */
-        virtual int inference(const std::vector<dcl::Mat> &images, std::vector<classification_t> &outputs);
+        virtual int inference(const std::vector<ty::Mat> &images, std::vector<classification_t> &outputs);
 
         /**
          * postprocess
@@ -50,7 +50,7 @@ namespace dcl {
          * @param detections
          * @return
          */
-        virtual int postprocess(const std::vector<dcl::Mat> &images, std::vector<classification_t> &outputs);
+        virtual int postprocess(const std::vector<ty::Mat> &images, std::vector<classification_t> &outputs);
 
         /**
          * unload model
@@ -59,7 +59,7 @@ namespace dcl {
         virtual int unload();
 
     protected:
-        std::vector<dcl::Tensor> vOutputTensors_;
+        std::vector<ty::Tensor> vOutputTensors_;
         NetOperator net_;
     };
 }

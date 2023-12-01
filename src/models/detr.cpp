@@ -8,15 +8,15 @@
 #include "utils/resize.h"
 
 
-namespace dcl {
-    int Detr::preprocess(const std::vector<dcl::Mat> &images) {
+namespace ty {
+    int Detr::preprocess(const std::vector<ty::Mat> &images) {
         if (images.size() != net_.getInputNum()) {
             DCL_APP_LOG(DCL_ERROR, "images size[%d] != model input size[%d]", images.size(), net_.getInputNum());
             return -1;
         }
         std::vector<input_t>& vInputs = net_.getInputs();
         for (int n=0; n < images.size(); ++n) {
-            dcl::Mat img;
+            ty::Mat img;
             img.data = static_cast<unsigned char *>(vInputs[n].data);
             img.phyAddr = vInputs[n].phyAddr;
             img.channels = vInputs[n].c();
@@ -28,7 +28,7 @@ namespace dcl {
         return 0;
     }
 
-    int Detr::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+    int Detr::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
@@ -41,8 +41,8 @@ namespace dcl {
 
         float gain = (float) input_sizes_[0] / std::max(images[0].h(), images[0].w());
 
-        const dcl::Tensor &cls_tensor = vOutputTensors_[0];  // 1, 100, 92
-        const dcl::Tensor &box_tensor = vOutputTensors_[1];  // 1, 100, 4
+        const ty::Tensor &cls_tensor = vOutputTensors_[0];  // 1, 100, 92
+        const ty::Tensor &box_tensor = vOutputTensors_[1];  // 1, 100, 4
         auto* cls = (float*)(cls_tensor.data);
         auto* box = (float*)(box_tensor.data);
 

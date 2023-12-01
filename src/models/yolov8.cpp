@@ -18,12 +18,10 @@ namespace ty {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
         }
-
         if (3 != vOutputTensors_.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 3", vOutputTensors_.size());
             return -2;
         }
-
         float gain = (float) input_sizes_[0] / std::max(images[0].h(), images[0].w());
         float pad_h = (input_sizes_[0] - images[0].h() * gain) * 0.5f;
         float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
@@ -31,19 +29,18 @@ namespace ty {
         float num[64];
         float den[4];
         float data[4];
-        const Tensor &argmax = vOutputTensors_[1];  // [1, 1, 8400]
+        const Tensor &argmax = vOutputTensors_[2];  // [1, 1, 8400]
         const Tensor &box = vOutputTensors_[1];  // [1, 64, 8400]
         const Tensor &cls = vOutputTensors_[0];  // [1, 80, 8400]
-        auto *idx_data = (int *) (argmax.data);
+        auto *idx_data = (int64 *) (argmax.data);
         auto *box_data = (float *) (box.data);  // 16 4 8400
         auto *cls_data = (float *) (cls.data);
         const int num_anchors = cls.d[2];
         for (int k = 0; k < num_anchors; ++k) {
-            int max_idx = idx_data[k];
+            int64 max_idx = idx_data[k];
             float conf = cls_data[max_idx * num_anchors + k];
             if (conf < conf_threshold_inv_)
                 continue;
-
             // softmax
             memset(num, 0, sizeof(float) * 64);
             memset(den, 0, sizeof(float) * 4);

@@ -5,10 +5,10 @@
 #ifndef DCL_WRAPPER_YOLOV8_H
 #define DCL_WRAPPER_YOLOV8_H
 
-#include "yolov7.h"
+#include "yolov5.h"
 
 namespace dcl {
-    class YoloV8 : public YoloV7 {
+    class YoloV8 : public YoloV5 {
     public:
         int load(const std::string &modelPath) override;
 
@@ -22,7 +22,6 @@ namespace dcl {
         float conf_threshold_inv_{0.25f};
         const int input_sizes_[2] = {640, 640}; // wh
         const int num_classes_{80};
-        const float strides_[3] = {8, 16, 32};
     };
 }
 

@@ -53,6 +53,7 @@ cmake \
 -DBUILD_opencv_superres=OFF \
 -DBUILD_opencv_ts=OFF \
 -DBUILD_opencv_video=OFF \
+-DBUILD_opencv_gapi=OFF \
 -DBUILD_opencv_videoio=OFF \
 -DBUILD_opencv_videostab=OFF \
 -DBUILD_opencv_java_bindings_generator=OFF \

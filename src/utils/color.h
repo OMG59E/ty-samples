@@ -15,8 +15,8 @@ typedef enum {
     IMAGE_COLOR_BGR888_TO_BGR888
 } colorSpace_t;
 
-namespace dcl {
-    static int bgr888ToBgr888_Planar(const dcl::Mat &src, dcl::Mat &dst) {
+namespace ty {
+    static int bgr888ToBgr888_Planar(const ty::Mat &src, ty::Mat &dst) {
         const int c = src.c();
         const int h = src.h();
         const int w = src.w();
@@ -31,7 +31,7 @@ namespace dcl {
         return 0;
     }
 
-    static int bgr888ToRgb888_Planar(const dcl::Mat &src, dcl::Mat &dst) {
+    static int bgr888ToRgb888_Planar(const ty::Mat &src, ty::Mat &dst) {
         const int c = src.c();
         const int h = src.h();
         const int w = src.w();
@@ -46,7 +46,7 @@ namespace dcl {
         return 0;
     }
 
-    static int cvtColor(const dcl::Mat &src, dcl::Mat &dst, colorSpace_t colorSpace) {
+    static int cvtColor(const ty::Mat &src, ty::Mat &dst, colorSpace_t colorSpace) {
         if (dst.empty()) {
             DCL_APP_LOG(DCL_ERROR, "dst is empty");
             return -1;

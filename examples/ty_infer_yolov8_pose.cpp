@@ -1,11 +1,10 @@
 //
-// Created by intellif on 23-4-13.
+// Created by intellif on 23-4-10.
 //
-
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/imgcodecs/imgcodecs.hpp"
-#include "models/yolov8_pose2.h"
+#include "models/yolov8_pose.h"
 #include "utils/device.h"
 #include "utils/utils.h"
 #include "utils/image.h"
@@ -15,13 +14,13 @@
 const static int skeleton[38] = {16, 14, 14, 12, 17, 15, 15, 13, 12, 13, 6, 12, 7, 13,
                                  6, 7, 6, 8, 7, 9, 8, 10, 9, 11, 2, 3, 1, 2, 1, 3, 2, 4, 3, 5, 4, 6, 5, 7};
 
-const static std::vector<dcl::Color> palette = {dcl::Color(255, 128,   0), dcl::Color(255, 153,  51), dcl::Color(255, 178, 102),
-                                                dcl::Color(230, 230,   0), dcl::Color(255, 153, 255), dcl::Color(153, 204, 255),
-                                                dcl::Color(255, 102, 255), dcl::Color(255,  51, 255), dcl::Color(102, 178, 255),
-                                                dcl::Color( 51, 153, 255), dcl::Color(255, 153, 153), dcl::Color(255, 102, 102),
-                                                dcl::Color(255,  51,  51), dcl::Color(153, 255, 153), dcl::Color(102, 255, 102),
-                                                dcl::Color( 51, 255,  51), dcl::Color(  0, 255,   0), dcl::Color(  0,   0, 255),
-                                                dcl::Color(255,   0,   0), dcl::Color(255, 255, 255)};
+const static std::vector<ty::Color> palette = {ty::Color(255, 128, 0), ty::Color(255, 153, 51), ty::Color(255, 178, 102),
+                                               ty::Color(230, 230, 0), ty::Color(255, 153, 255), ty::Color(153, 204, 255),
+                                               ty::Color(255, 102, 255), ty::Color(255, 51, 255), ty::Color(102, 178, 255),
+                                               ty::Color(51, 153, 255), ty::Color(255, 153, 153), ty::Color(255, 102, 102),
+                                               ty::Color(255, 51, 51), ty::Color(153, 255, 153), ty::Color(102, 255, 102),
+                                               ty::Color(51, 255, 51), ty::Color(0, 255, 0), ty::Color(0, 0, 255),
+                                               ty::Color(255, 0, 0), ty::Color(255, 255, 255)};
 
 const static std::vector<int> pose_limb_color = {9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 1};
 const static std::vector<int> pose_kpt_color = {16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9};
@@ -40,14 +39,14 @@ int main(int argc, char** argv) {
     const char *resFile = argv[4];
 
     // sdk init
-    dcl::deviceInit(sdkCfg);
+    ty::deviceInit(sdkCfg);
 
-    dcl::YoloV8Pose2 model;
-    std::vector<dcl::detection_t> detections;
-    dcl::Mat img;
+    ty::YoloV8Pose model;
+    std::vector<ty::detection_t> detections;
+    ty::Mat img;
 
     cv::Mat src = cv::imread(imgPath);
-    dcl::Mat vis = cvMatToDclMat(src);
+    ty::Mat vis = cvMatToDclMat(src);
     if (src.empty()) {
         DCL_APP_LOG(DCL_ERROR, "Failed to read img, maybe filepath not exist -> %s", imgPath);
         goto exit;
@@ -76,25 +75,26 @@ int main(int argc, char** argv) {
 
     DCL_APP_LOG(DCL_INFO, "Found object num: %d", detections.size());
 
+
     for (const auto &detection: detections) {
-        dcl::rectangle(vis, dcl::Point(detection.box.x1, detection.box.y1),
-                       dcl::Point(detection.box.x2, detection.box.y2), dcl::Color(0, 0, 255), 3);
+        ty::rectangle(vis, ty::Point(detection.box.x1, detection.box.y1),
+                      ty::Point(detection.box.x2, detection.box.y2), ty::Color(0, 0, 255), 3);
 
         for (int k=0; k<19; ++k) {
-            const dcl::Point& p1 = detection.kpts[skeleton[k * 2 + 0] - 1];
-            const dcl::Point& p2 = detection.kpts[skeleton[k * 2 + 1] - 1];
+            const ty::Point& p1 = detection.kpts[skeleton[k * 2 + 0] - 1];
+            const ty::Point& p2 = detection.kpts[skeleton[k * 2 + 1] - 1];
             if (p1.score < 0.5f || p2.score < 0.5f)
                 continue;
-            const dcl::Color& color = palette[pose_limb_color[k]];
-            dcl::lineBres(vis, p1, p2, color, 3);
+            const ty::Color& color = palette[pose_limb_color[k]];
+            ty::lineBres(vis, p1, p2, color, 3);
         }
 
         for (int k=0; k<17; ++k) {
-            const dcl::Point& p = detection.kpts[k];
+            const ty::Point& p = detection.kpts[k];
             if (p.score < 0.5f)
                 continue;
-            const dcl::Color& color = palette[pose_kpt_color[k]];
-            dcl::circle(vis, p, 5, color, -1);
+            const ty::Color& color = palette[pose_kpt_color[k]];
+            ty::circle(vis, p, 5, color, -1);
         }
     }
 
@@ -104,6 +104,6 @@ exit:
     src.release();
     img.free();
     // sdk release
-    dcl::deviceFinalize();
+    ty::deviceFinalize();
     return 0;
 }

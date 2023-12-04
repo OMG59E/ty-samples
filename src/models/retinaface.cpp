@@ -10,7 +10,7 @@
 #include <cassert>
 #include <cmath>
 
-namespace dcl {
+namespace ty {
     int RetinaFace::load(const std::string &modelPath) {
         // init feature map size
         for (int i = 0; i < 3; ++i) {
@@ -52,14 +52,14 @@ namespace dcl {
         return net_.unload();
     }
 
-    int RetinaFace::preprocess(const std::vector<dcl::Mat> &images) {
+    int RetinaFace::preprocess(const std::vector<ty::Mat> &images) {
         if (images.size() != net_.getInputNum()) {
             DCL_APP_LOG(DCL_ERROR, "images size[%d] != model input size[%d]", images.size(), net_.getInputNum());
             return -1;
         }
         std::vector<input_t>& vInputs = net_.getInputs();
         for (int n=0; n < images.size(); ++n) {
-            dcl::Mat img;
+            ty::Mat img;
             img.data = static_cast<unsigned char *>(vInputs[n].data);
             img.phyAddr = vInputs[n].phyAddr;
             img.channels = vInputs[n].c();
@@ -71,7 +71,7 @@ namespace dcl {
         return 0;
     }
 
-    int RetinaFace::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+    int RetinaFace::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
@@ -86,9 +86,9 @@ namespace dcl {
         const int width = images[0].original_width;
         const int target_size = std::max(height, width);
 
-        const dcl::Tensor &loc_tensor = vOutputTensors_[0];
-        const dcl::Tensor &conf_tensor = vOutputTensors_[1];
-        const dcl::Tensor &pts_tensor = vOutputTensors_[2];
+        const ty::Tensor &loc_tensor = vOutputTensors_[0];
+        const ty::Tensor &conf_tensor = vOutputTensors_[1];
+        const ty::Tensor &pts_tensor = vOutputTensors_[2];
 
         auto* loc_data = (float*)(loc_tensor.data);
         auto* conf_data = (float*)(conf_tensor.data);

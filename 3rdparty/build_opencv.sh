@@ -6,9 +6,6 @@ cd opencv-4.5.4 && mkdir -p build && cd build
 cmake \
 -DCMAKE_BUILD_TYPE=RELEASE \
 -DCMAKE_INSTALL_PREFIX=../../opencv \
--DCMAKE_CXX_COMPILER="${ARM_CXX_COMPILER}" \
--DCMAKE_C_COMPILER="${ARM_C_COMPILER}" \
--DCMAKE_CXX_FLAGS="-O2 -std=c++11 -w -fPIC ${ARM_CXX_FLAGS}" \
 -DWITH_CUDA=OFF \
 -DWITH_OPENCL=OFF \
 -DWITH_FFMPEG=OFF \
@@ -47,16 +44,18 @@ cmake \
 -DBUILD_opencv_highgui=OFF \
 -DBUILD_opencv_ml=OFF \
 -DBUILD_opencv_objdetect=OFF \
+-DBUILD_opencv_gapi=OFF \
 -DBUILD_opencv_photo=OFF \
 -DBUILD_opencv_shape=OFF \
 -DBUILD_opencv_stitching=OFF \
 -DBUILD_opencv_superres=OFF \
 -DBUILD_opencv_ts=OFF \
 -DBUILD_opencv_video=OFF \
+-DBUILD_opencv_gapi=OFF \
 -DBUILD_opencv_videoio=OFF \
 -DBUILD_opencv_videostab=OFF \
 -DBUILD_opencv_java_bindings_generator=OFF \
 -DBUILD_opencv_python_bindings_generator=OFF \
 -DBUILD_opencv_apps=OFF ..
 
-make -j20 && make install
+make -j2 && make install

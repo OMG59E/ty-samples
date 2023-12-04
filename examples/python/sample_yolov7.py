@@ -5,10 +5,10 @@ import cv2
 import tqdm
 import time
 import argparse
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import pymz as mz
-from datasets.coco import COCO2017Val
-from utils import detections2txt, detection_txt2json, coco_eval, convert
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../.."))
+import python.pymz as mz
+from python.datasets.coco import COCO2017Val
+from python.utils import detections2txt, detection_txt2json, coco_eval, convert
 
 
 def evaluate(m, dataset_path):
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     mz.dcl_init(args.cfg)
 
-    m = mz.YOLOv5()
+    m = mz.YOLOv7()
     if m.load(args.model_path) != 0:
         print("Failed to load model -> {}".format(args.model_path))
         exit(-1)

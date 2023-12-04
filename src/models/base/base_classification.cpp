@@ -4,19 +4,19 @@
 
 #include "base_classification.h"
 
-namespace dcl {
+namespace ty {
     int BaseClassifier::load(const std::string &modelPath) {
         return net_.load(modelPath);
     }
 
-    int BaseClassifier::preprocess(const std::vector<dcl::Mat> &images) {
+    int BaseClassifier::preprocess(const std::vector<ty::Mat> &images) {
         if (images.size() != net_.getInputNum()) {
             DCL_APP_LOG(DCL_ERROR, "images size[%d] != model input size[%d]", images.size(), net_.getInputNum());
             return -1;
         }
         std::vector<input_t>& vInputs = net_.getInputs();
         for (int n=0; n < images.size(); ++n) {
-            dcl::Mat img;
+            ty::Mat img;
             img.data = static_cast<unsigned char *>(vInputs[n].data);
             img.phyAddr = vInputs[n].phyAddr;
             img.channels = vInputs[n].c();
@@ -28,12 +28,12 @@ namespace dcl {
         return 0;
     }
 
-    int BaseClassifier::inference(const dcl::Mat &image, std::vector<classification_t> &outputs) {
-        std::vector<dcl::Mat> images = {image};
+    int BaseClassifier::inference(const ty::Mat &image, std::vector<classification_t> &outputs) {
+        std::vector<ty::Mat> images = {image};
         return inference(images, outputs);
     }
 
-    int BaseClassifier::inference(const std::vector<dcl::Mat> &images, std::vector<classification_t> &outputs) {
+    int BaseClassifier::inference(const std::vector<ty::Mat> &images, std::vector<classification_t> &outputs) {
         for (auto& image : images) {
             if (image.size() > MAX_IMAGE_SIZE) {
                 DCL_APP_LOG(DCL_ERROR, "Not support image size: %d, and max support image size: %d",
@@ -67,8 +67,8 @@ namespace dcl {
         return 0;
     }
 
-    int BaseClassifier::postprocess(const std::vector<dcl::Mat> &images,
-                                    std::vector<dcl::classification_t> &classifications) {
+    int BaseClassifier::postprocess(const std::vector<ty::Mat> &images,
+                                    std::vector<ty::classification_t> &classifications) {
         classifications.clear();
         for (const auto &tensor: vOutputTensors_) {
             auto* pred = (float*)(tensor.data);

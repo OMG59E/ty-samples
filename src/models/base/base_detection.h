@@ -8,7 +8,7 @@
 #include "base_type.h"
 #include "net_operator.h"
 
-namespace dcl {
+namespace ty {
     class BaseDetector {
     public:
         /**
@@ -24,7 +24,7 @@ namespace dcl {
          * @param images
          * @return
          */
-        virtual int preprocess(const std::vector<dcl::Mat> &images);
+        virtual int preprocess(const std::vector<ty::Mat> &images);
 
         /**
          * model inference for signal input
@@ -32,7 +32,7 @@ namespace dcl {
          * @param outputs
          * @return
          */
-        virtual int inference(const dcl::Mat &image, std::vector<detection_t> &outputs);
+        virtual int inference(const ty::Mat &image, std::vector<detection_t> &outputs);
 
         /**
          * model inference for multi-input
@@ -40,7 +40,7 @@ namespace dcl {
          * @param detections
          * @return
          */
-        virtual int inference(const std::vector<dcl::Mat> &images, std::vector<detection_t> &outputs);
+        virtual int inference(const std::vector<ty::Mat> &images, std::vector<detection_t> &outputs);
 
         /**
          * postprocess
@@ -48,7 +48,7 @@ namespace dcl {
          * @param detections
          * @return
          */
-        virtual int postprocess(const std::vector<dcl::Mat> &images, std::vector<detection_t> &outputs) = 0;
+        virtual int postprocess(const std::vector<ty::Mat> &images, std::vector<detection_t> &outputs) = 0;
 
         /**
          * unload model
@@ -56,12 +56,11 @@ namespace dcl {
          */
         virtual int unload();
 
-        void set_iou_threshold(float iou_threshold)  { iou_threshold_ = iou_threshold; }
-
-        void set_conf_threshold(float conf_threshold) { conf_threshold_ = conf_threshold; }
+        virtual void set_iou_threshold(float iou_threshold)  { iou_threshold_ = iou_threshold; }
+        virtual void set_conf_threshold(float conf_threshold) { conf_threshold_ = conf_threshold; }
 
     protected:
-        std::vector<dcl::Tensor> vOutputTensors_;
+        std::vector<ty::Tensor> vOutputTensors_;
         NetOperator net_;
         float iou_threshold_{0.45f};
         float conf_threshold_{0.25f};

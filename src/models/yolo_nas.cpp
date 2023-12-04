@@ -5,8 +5,8 @@
 #include "yolo_nas.h"
 #include "utils/nms.h"
 
-namespace dcl {
-    int YoloNas::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+namespace ty {
+    int YoloNas::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
@@ -21,8 +21,8 @@ namespace dcl {
         float pad_h = (input_sizes_[0] - images[0].h() * gain) * 0.5f;
         float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
-        const dcl::Tensor &box_tensor = vOutputTensors_[0];  // 1, 8400, 4
-        const dcl::Tensor &cls_tensor = vOutputTensors_[1];  // 1, 8400, 80
+        const ty::Tensor &box_tensor = vOutputTensors_[0];  // 1, 8400, 4
+        const ty::Tensor &cls_tensor = vOutputTensors_[1];  // 1, 8400, 80
 
         auto* cls = (float*)(cls_tensor.data);
         auto* box = (float*)(box_tensor.data);

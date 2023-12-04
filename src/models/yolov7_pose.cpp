@@ -6,7 +6,7 @@
 #include "yolov7_pose.h"
 #include "utils/nms.h"
 
-int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+int ty::YoloV7Pose::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
     if (1 != images.size()) {
         DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
         return -1;
@@ -21,7 +21,7 @@ int dcl::YoloV7Pose::postprocess(const std::vector<dcl::Mat> &images, std::vecto
     float pad_h = (input_sizes_[0] - images[0].h() * gain) * 0.5f;
     float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
-    const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 25500, 57
+    const ty::Tensor &tensor = vOutputTensors_[0];  // 1, 25500, 57
     auto* pred = (float*)(tensor.data);
 
     const int num_anchors = tensor.c();

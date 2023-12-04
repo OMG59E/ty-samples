@@ -10,7 +10,7 @@
 #include "utils/resize.h"
 #include "utils/math_utils.h"
 
-namespace dcl {
+namespace ty {
     int YoloV3::load(const std::string &modelPath) {
         conf_threshold_inv_ = -logf((1.0f / conf_threshold_) - 1.0f);
         // init feature map size
@@ -21,14 +21,14 @@ namespace dcl {
         return net_.load(modelPath);
     }
 
-    int YoloV3::preprocess(const std::vector<dcl::Mat> &images) {
+    int YoloV3::preprocess(const std::vector<ty::Mat> &images) {
         if (images.size() != net_.getInputNum()) {
             DCL_APP_LOG(DCL_ERROR, "images size[%d] != model input size[%d]", images.size(), net_.getInputNum());
             return -1;
         }
         std::vector<input_t>& vInputs = net_.getInputs();
         for (int n=0; n < images.size(); ++n) {
-            dcl::Mat img;
+            ty::Mat img;
             img.data = static_cast<unsigned char *>(vInputs[n].data);
             img.phyAddr = vInputs[n].phyAddr;
             img.channels = vInputs[n].c();
@@ -40,7 +40,7 @@ namespace dcl {
         return 0;
     }
 
-    int YoloV3::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+    int YoloV3::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
@@ -57,7 +57,7 @@ namespace dcl {
 
         detections.clear();
         for (int k = 0; k < vOutputTensors_.size(); ++k) {
-            const dcl::Tensor &tensor = vOutputTensors_[k];  // bs1, 3, 85, h, w
+            const ty::Tensor &tensor = vOutputTensors_[k];  // bs1, 3, 85, h, w
 
             auto* data = (float*)(tensor.data);
 

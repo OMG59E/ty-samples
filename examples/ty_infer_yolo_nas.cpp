@@ -1,8 +1,11 @@
 //
-// Created  on 22-9-21.
+// Created by intellif on 23-5-26.
 //
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgcodecs/imgcodecs.hpp>
+#include <opencv2/core/core.hpp>
 
-#include "models/yolov7.h"
+#include "models/yolo_nas.h"
 #include "utils/device.h"
 #include "utils/utils.h"
 #include "utils/image.h"
@@ -22,11 +25,11 @@ int main(int argc, char** argv) {
     const char *resFile = argv[4];
 
     // sdk init
-    dcl::deviceInit(sdkCfg);
+    ty::deviceInit(sdkCfg);
 
-    dcl::YoloV7 model;
-    std::vector<dcl::detection_t> detections;
-    dcl::Mat img;
+    ty::YoloNas model;
+    std::vector<ty::detection_t> detections;
+    ty::Mat img;
 
     cv::Mat src = cv::imread(imgPath);
     if (src.empty()) {
@@ -58,6 +61,8 @@ int main(int argc, char** argv) {
     DCL_APP_LOG(DCL_INFO, "Found object num: %d", detections.size());
 
     for (const auto& detection : detections) {
+        DCL_APP_LOG(DCL_INFO, "object: %f %d %d %d %d %d", detection.conf, detection.cls,
+                    detection.box.x1, detection.box.y1, detection.box.x2, detection.box.y2);
         cv::rectangle(src, cv::Point(detection.box.x1, detection.box.y1),
                       cv::Point(detection.box.x2, detection.box.y2), cv::Scalar(0, 0, 255), 2);
     }
@@ -68,6 +73,6 @@ exit:
     src.release();
     img.free();
     // sdk release
-    dcl::deviceFinalize();
+    ty::deviceFinalize();
     return 0;
 }

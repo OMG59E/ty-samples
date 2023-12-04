@@ -1,31 +1,32 @@
 //
-// Created  on 22-9-22.
+// Created  on 22-9-21.
 //
 
-#include "models/resnet.h"
+#include "models/yolov6.h"
 #include "utils/device.h"
 #include "utils/utils.h"
+#include "utils/image.h"
 #include "bitmap_image.hpp"
 #include "base_type.h"
 
-
 int main(int argc, char** argv) {
-    if (argc != 4) {
-        printf("input param num(%d) must be == 4,\n"
-               "\t1 - sdk.config, 2 - input image path, 3 - model file path\n", argc);
+    if (argc != 5) {
+        printf("input param num(%d) must be == 5,\n"
+               "\t1 - sdk.config, 2 - input image path, 3 - model file path, 4 - result image path\n", argc);
         return -1;
     }
 
     const char *sdkCfg = argv[1];
     const char *imgPath = argv[2];
     const char *binFile = argv[3];
+    const char *resFile = argv[4];
 
     // sdk init
-    dcl::deviceInit(sdkCfg);
+    ty::deviceInit(sdkCfg);
 
-    dcl::ResNet model;
-    std::vector<dcl::classification_t> classifications;
-    dcl::Mat img;
+    ty::YoloV6 model;
+    std::vector<ty::detection_t> detections;
+    ty::Mat img;
 
     cv::Mat src = cv::imread(imgPath);
     if (src.empty()) {
@@ -43,25 +44,30 @@ int main(int argc, char** argv) {
     }
 
     // inference
-    if (0 != model.inference(img, classifications)) {
+    if (0 != model.inference(img, detections)) {
         DCL_APP_LOG(DCL_ERROR, "Failed to inference");
         goto exit;
     }
+
     // unload
     if (0 != model.unload()) {
         DCL_APP_LOG(DCL_ERROR, "Failed to unload model");
         goto exit;
     }
 
-    for (const auto& classification : classifications) {
-        DCL_APP_LOG(DCL_INFO, "cls: %d, name: %s, conf: %03f", classification.cls,
-                    classification.name.c_str(), classification.conf);
+    DCL_APP_LOG(DCL_INFO, "Found object num: %d", detections.size());
+
+    for (const auto& detection : detections) {
+        cv::rectangle(src, cv::Point(detection.box.x1, detection.box.y1),
+                      cv::Point(detection.box.x2, detection.box.y2), cv::Scalar(0, 0, 255), 2);
     }
+
+    cv::imwrite(resFile, src);
 
 exit:
     src.release();
     img.free();
     // sdk release
-    dcl::deviceFinalize();
+    ty::deviceFinalize();
     return 0;
 }

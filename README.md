@@ -1,50 +1,78 @@
-# MODELZOO
+# TySamples
 
-基于dcl接口实现的常见模型推理示例，目前主要包括检测、分类模型。
+基于dcl接口用python/C++实现的常见模型推理示例，目前主要包括检测、分类模型。
+
+## 适用设备
+
+- SOM开发板(A300)
 
 ## 目录结构
 
 ```
 modelzoo
 ├── examples      c++模型示例
-├── python
+├── python        python模型示例
 ├── src           源码目录
-│   ├── codecs    jpeg编解码模块(暂不能用)
 │   ├── models    模型推理实现模块
 │   └── utils     常用函数
 ├── data          demo数据
-├── build.sh      交叉编译脚本，用于芯片运行
-├── build_simu.sh 仿真编译脚本，用于软仿(不建议使用，巨慢)
+├── build.sh      编译脚本
 ├── CMakeLists.txt
 └── README.md
 ```
 
+## 支持模型
+- yolov3
+- yolov5 (det, seg)
+- yolov6
+- yolov7 (det, pose)
+- yolov8 (det, pose, seg)
+- yolo-nas
+- mobilenet_v1
+- mobilenet_v2
+- resnet18
+- resnet50
+- PPLCNet_1x1
+- retinaface_mobilenet_v1_x0.25
+
 ## 使用说明
 
-```shell
+### 编译
+```bash
+# 安装依赖
 apt update
-apt install cmake gcc g++ make python3.8-dev
-pip3 install opencv-python==4.5.2.54 numpy
+apt install cmake gcc g++ make git nfs-kernel-server python3.8-dev
+#
+git clone https://github.com/OMG59E/ty-samples.git
+cd ty-samples
+cd 3rdparty
+# 安装python依赖
+python3 get-pip.py -i https://mirror.baidu.com/pypi/simple
+pip3 install tqdm opencv-python==4.5.4.60 numpy==1.24.4 pycocotools==2.0.7 -i https://mirror.baidu.com/pypi/simple
+# 编译opencv
+sh get_opencv.sh
+sh build_opencv.sh
+# 
+cd .. && sh build.sh
 ```
 
 ### 执行
 
-在芯片端执行，需要自行挂载主机侧/DEngine至芯片侧
+- 检测模型，以yolov7为例
 
-#### 检测模型
-
-以yolov7为例, 对应模型的芯片模型需要在tymodelzoo中自行编译
-
-```shell
-cd /DEngine/tyexamples/modelzoo/build/
-./dcl_infer_yolov7 /config/sdk.cfg ../data/test.bmp /DEngine/tymodelzoo/detection/onnx_yolov7/dp2000/net_combine.bin ../data/test_res.bmp
+```bash
+# c++
+cd build
+./dcl_infer_yolov7 /config/sdk.cfg ../data/test.bmp /DEngine/tymodelzoo/detection/onnx_yolov7/dp2000/net_combine.ty ../data/test_res.bmp
+# python
 ```
 
-#### 分类模型
+- 分类模型，以resnet为例
 
-以resnet为例, 对应模型的芯片模型需要在tymodelzoo中自行编译
+```bash
+# c++
+cd build
+./dcl_infer_resnet /config/sdk.cfg ../data/test.bmp /DEngine/tymodelzoo/classification/caffe_resnet50/dp2000/net_combine.ty
+# python
 
-```shell
-cd /DEngine/tyexamples/dcl/modelzoo/build/
-./dcl_infer_resnet /config/sdk.cfg ../data/test.bmp /DEngine/tymodelzoo/classification/caffe_resnet50/dp2000/net_combine.bin
 ```

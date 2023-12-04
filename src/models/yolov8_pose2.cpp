@@ -6,13 +6,13 @@
 #include "utils/nms.h"
 #include "utils/math_utils.h"
 
-namespace dcl {
+namespace ty {
     int YoloV8Pose2::load(const std::string &modelPath) {
         conf_threshold_inv_ = -logf((1.0f / conf_threshold_) - 1.0f);
         return net_.load(modelPath);
     }
 
-    int YoloV8Pose2::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+    int YoloV8Pose2::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;

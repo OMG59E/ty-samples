@@ -7,10 +7,10 @@
 
 #include "yolov7.h"
 
-namespace dcl {
+namespace ty {
     class YoloV7Pose : public YoloV7 {
     public:
-        int postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) override;
+        int postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) override;
 
     private:
         int min_wh_{2};

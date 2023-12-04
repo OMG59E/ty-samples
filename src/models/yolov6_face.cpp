@@ -5,8 +5,8 @@
 #include "yolov6_face.h"
 #include "utils/nms.h"
 
-namespace dcl {
-    int YoloV6Face::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+namespace ty {
+    int YoloV6Face::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
@@ -21,7 +21,7 @@ namespace dcl {
         float pad_h = (input_sizes_[0] - images[0].h() * gain) * 0.5f;
         float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
-        const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 25200, 117
+        const ty::Tensor &tensor = vOutputTensors_[0];  // 1, 25200, 117
         auto* pred = (float*)(tensor.data);
 
         const int num_anchors = tensor.c();

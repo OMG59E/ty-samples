@@ -16,7 +16,6 @@ else()
     set(CMAKE_CXX_FLAGS "-O2 -std=c++14 -w -fPIC")
 endif()
 
-include_directories(/DEngine/tyhcp/include/dcl)
 include_directories(${HCP_INC_PATH})
 include_directories(${HAL_INC_PATH})
 include_directories(${MAL_INC_PATH})

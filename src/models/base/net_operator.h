@@ -22,7 +22,7 @@ using namespace std::chrono;
 #define MAX_IMAGE_W 1920
 #define MAX_IMAGE_SIZE MAX_IMAGE_C*MAX_IMAGE_H*MAX_IMAGE_W
 
-namespace dcl {
+namespace ty {
     typedef struct {
         int idx{-1};
         void *data{nullptr};
@@ -79,7 +79,7 @@ namespace dcl {
          * @param handle
          * @return
          */
-        int inference(std::vector<dcl::Tensor> &vOutputTensors);
+        int inference(std::vector<ty::Tensor> &vOutputTensors);
 
         /**
          * unload model

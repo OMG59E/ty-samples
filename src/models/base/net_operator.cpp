@@ -5,7 +5,7 @@
 #include "utils/utils.h"
 #include "utils/macro.h"
 
-namespace dcl {
+namespace ty {
     uint32_t NetOperator::ref_count_ = 0;
     std::mutex NetOperator::rw_mutex_;
 
@@ -153,7 +153,7 @@ namespace dcl {
         return 0;
     }
 
-    int NetOperator::inference(std::vector<dcl::Tensor> &vOutputTensors) {
+    int NetOperator::inference(std::vector<ty::Tensor> &vOutputTensors) {
         high_resolution_clock::time_point t0 = high_resolution_clock::now();
         dclError ret = dclmdlExecute(modelId_, inputDataset_, outputDataset_);
         if (DCL_SUCCESS != ret) {

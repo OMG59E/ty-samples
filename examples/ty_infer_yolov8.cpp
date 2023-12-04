@@ -1,11 +1,14 @@
 //
-// Created  on 22-9-16.
+// Created by intellif on 23-4-24.
 //
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgcodecs/imgcodecs.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
-#include "models/yolov3_opt.h"
+#include "models/yolov8.h"
 #include "utils/device.h"
-#include "utils/image.h"
 #include "utils/utils.h"
+#include "utils/image.h"
 #include "bitmap_image.hpp"
 #include "base_type.h"
 
@@ -22,11 +25,11 @@ int main(int argc, char** argv) {
     const char *resFile = argv[4];
 
     // sdk init
-    dcl::deviceInit(sdkCfg);
+    ty::deviceInit(sdkCfg);
 
-    dcl::YoloV3Opt model;
-    std::vector<dcl::detection_t> detections;
-    dcl::Mat img;
+    ty::YoloV8 model;
+    std::vector<ty::detection_t> detections;
+    ty::Mat img;
 
     cv::Mat src = cv::imread(imgPath);
     if (src.empty()) {
@@ -43,6 +46,7 @@ int main(int argc, char** argv) {
         goto exit;
     }
 
+    // inference
     if (0 != model.inference(img, detections)) {
         DCL_APP_LOG(DCL_ERROR, "Failed to inference");
         goto exit;
@@ -67,6 +71,6 @@ exit:
     src.release();
     img.free();
     // sdk release
-    dcl::deviceFinalize();
+    ty::deviceFinalize();
     return 0;
 }

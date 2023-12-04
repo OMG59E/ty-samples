@@ -7,8 +7,8 @@
 #include "yolov3_opt.h"
 #include "utils/nms.h"
 
-namespace dcl {
-    int YoloV3Opt::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+namespace ty {
+    int YoloV3Opt::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
@@ -25,7 +25,7 @@ namespace dcl {
 
         detections.clear();
         for (int k = 0; k < vOutputTensors_.size(); ++k) {
-            const dcl::Tensor &tensor = vOutputTensors_[k];  // bs1, 3, 85, h, w
+            const ty::Tensor &tensor = vOutputTensors_[k];  // bs1, 3, 85, h, w
             auto* data = (float*)(tensor.data);
 
             const int C = tensor.c();

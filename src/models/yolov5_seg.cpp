@@ -7,7 +7,7 @@
 #include "utils/nms.h"
 #include "dcl_ive.h"
 
-namespace dcl {
+namespace ty {
     int YoloV5Seg::load(const std::string &modelPath) {
         prob_.create(proto_sizes_[1], proto_sizes_[0], DCL_PIXEL_FORMAT_YUV_400);
         return net_.load(modelPath);
@@ -18,7 +18,7 @@ namespace dcl {
         return net_.unload();
     }
 
-    int YoloV5Seg::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+    int YoloV5Seg::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
@@ -33,7 +33,7 @@ namespace dcl {
         float pad_h = (input_sizes_[0] - images[0].h() * gain) * 0.5f;
         float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
-        const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 25200, 117
+        const ty::Tensor &tensor = vOutputTensors_[0];  // 1, 25200, 117
         auto* pred = (float*)(tensor.data);
 
         const int num_anchors = tensor.c();
@@ -108,7 +108,7 @@ namespace dcl {
         // nms
         non_max_suppression(detections, iou_threshold_);
 
-        const dcl::Tensor &protos = vOutputTensors_[1];  // 1, 32, 160, 160
+        const ty::Tensor &protos = vOutputTensors_[1];  // 1, 32, 160, 160
         auto* proto = (float*)(protos.data);
 
         const int C = protos.c();
@@ -116,7 +116,7 @@ namespace dcl {
         const int W = protos.w();
         const float scale = (float) W / input_sizes_[0];
 
-        dcl::Mat prob(images[0].h(), images[0].w(), DCL_PIXEL_FORMAT_YUV_400);
+        ty::Mat prob(images[0].h(), images[0].w(), DCL_PIXEL_FORMAT_YUV_400);
         for (auto &detection: detections) {
             memset(prob_.data, 0, prob_.size());
             memset(prob.data, 0, prob.size());

@@ -11,9 +11,9 @@
 #include "base_type.h"
 #include "line.h"
 
-namespace dcl {
+namespace ty {
 
-    void Line_VH(dcl::Mat &src, dcl::Point p1, dcl::Point p2, dcl::Color color, int thickness) {
+    void Line_VH(ty::Mat &src, ty::Point p1, ty::Point p2, ty::Color color, int thickness) {
         assert(thickness >= 1);
         assert(p2.x >= p1.x && p2.y >= p1.x);
         const int h = src.h();
@@ -39,14 +39,14 @@ namespace dcl {
         }
     }
 
-    void rectangle(dcl::Mat &src, dcl::Point p1, dcl::Point p2, dcl::Color color, int thickness) {
-        Line_VH(src, p1, dcl::Point(p1.x, p2.y), color, thickness);
-        Line_VH(src, p1, dcl::Point(p2.x, p1.y), color, thickness);
-        Line_VH(src, dcl::Point(p1.x, p2.y), p2, color, thickness);
-        Line_VH(src, dcl::Point(p2.x, p1.y), p2, color, thickness);
+    void rectangle(ty::Mat &src, ty::Point p1, ty::Point p2, ty::Color color, int thickness) {
+        Line_VH(src, p1, ty::Point(p1.x, p2.y), color, thickness);
+        Line_VH(src, p1, ty::Point(p2.x, p1.y), color, thickness);
+        Line_VH(src, ty::Point(p1.x, p2.y), p2, color, thickness);
+        Line_VH(src, ty::Point(p2.x, p1.y), p2, color, thickness);
     }
 
-    void circle(dcl::Mat& src, dcl::Point p, int radius, dcl::Color color, int thickness) {
+    void circle(ty::Mat& src, ty::Point p, int radius, ty::Color color, int thickness) {
         assert(radius >= 1);
         const int h = src.h();
         const int w = src.w();

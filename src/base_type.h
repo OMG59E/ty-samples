@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-namespace dcl {
+namespace ty {
     typedef dclPixelFormat pixelFormat_t;
 
     struct Mat {
@@ -208,7 +208,7 @@ namespace dcl {
         Point pts[5]{};  // 5 landmark
         Point kpts[17]{}; // 17-keypoints
         float mask[32]{};
-        dcl::Mat prob;
+        ty::Mat prob;
         std::vector<contour_t> contours;
 
         std::vector<Point> getPts() {

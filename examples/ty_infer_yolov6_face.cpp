@@ -2,10 +2,10 @@
 // Created  on 22-8-24.
 //
 
-#include "models/retinaface.h"
+#include "models/yolov6_face.h"
 #include "utils/device.h"
-#include "utils/image.h"
 #include "utils/utils.h"
+#include "utils/image.h"
 #include "bitmap_image.hpp"
 #include "base_type.h"
 
@@ -22,11 +22,11 @@ int main(int argc, char** argv) {
     const char *resFile = argv[4];
 
     // sdk init
-    dcl::deviceInit(sdkCfg);
+    ty::deviceInit(sdkCfg);
 
-    dcl::RetinaFace model;
-    std::vector<dcl::detection_t> detections;
-    dcl::Mat img;
+    ty::YoloV6Face model;
+    std::vector<ty::detection_t> detections;
+    ty::Mat img;
 
     cv::Mat src = cv::imread(imgPath);
     if (src.empty()) {
@@ -73,6 +73,6 @@ exit:
     src.release();
     img.free();
     // sdk release
-    dcl::deviceFinalize();
+    ty::deviceFinalize();
     return 0;
 }

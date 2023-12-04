@@ -9,15 +9,15 @@
 #include "utils/color.h"
 #include "utils/resize.h"
 
-namespace dcl {
-    int YoloV5::preprocess(const std::vector<dcl::Mat> &images) {
+namespace ty {
+    int YoloV5::preprocess(const std::vector<ty::Mat> &images) {
         if (images.size() != net_.getInputNum()) {
             DCL_APP_LOG(DCL_ERROR, "images size[%d] != model input size[%d]", images.size(), net_.getInputNum());
             return -1;
         }
         std::vector<input_t>& vInputs = net_.getInputs();
         for (int n=0; n < images.size(); ++n) {
-            dcl::Mat img;
+            ty::Mat img;
             img.data = static_cast<unsigned char *>(vInputs[n].data);
             img.phyAddr = vInputs[n].phyAddr;
             img.channels = vInputs[n].c();
@@ -29,7 +29,7 @@ namespace dcl {
         return 0;
     }
 
-    int YoloV5::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+    int YoloV5::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
         if (1 != images.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
             return -1;
@@ -44,7 +44,7 @@ namespace dcl {
         float pad_h = (input_sizes_[0] - images[0].h() * gain) * 0.5f;
         float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
 
-        const dcl::Tensor &tensor = vOutputTensors_[0];  // 1, 8400, 85
+        const ty::Tensor &tensor = vOutputTensors_[0];  // 1, 8400, 85
         auto* pred = (float*)(tensor.data);
 
         detections.clear();

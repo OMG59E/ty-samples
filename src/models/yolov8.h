@@ -7,12 +7,12 @@
 
 #include "yolov5.h"
 
-namespace dcl {
+namespace ty {
     class YoloV8 : public YoloV5 {
     public:
-        int load(const std::string &modelPath, bool useInternalMem = true) override;
+        int load(const std::string &modelPath) override;
 
-        int postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) override;
+        int postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) override;
 
     private:
         int min_wh_{2};

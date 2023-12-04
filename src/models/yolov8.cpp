@@ -7,13 +7,13 @@
 #include "utils/nms.h"
 #include "utils/math_utils.h"
 
-namespace dcl {
-    int YoloV8::load(const std::string &modelPath, bool useInternalMem) {
+namespace ty {
+    int YoloV8::load(const std::string &modelPath) {
         conf_threshold_inv_ = -logf((1.0f / conf_threshold_) - 1.0f);
-        return net_.load(modelPath, true, useInternalMem);
+        return net_.load(modelPath);
     }
 
-    int YoloV8::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
+    int YoloV8::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
         if (3 != vOutputTensors_.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 3", vOutputTensors_.size());
             return -2;

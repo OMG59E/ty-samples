@@ -7,21 +7,18 @@
 #include "utils/nms.h"
 #include "utils/math_utils.h"
 
-namespace ty {
-    int YoloV8::load(const std::string &modelPath) {
+namespace dcl {
+    int YoloV8::load(const std::string &modelPath, bool useInternalMem) {
         conf_threshold_inv_ = -logf((1.0f / conf_threshold_) - 1.0f);
-        return net_.load(modelPath);
+        return net_.load(modelPath, true, useInternalMem);
     }
 
-    int YoloV8::postprocess(const std::vector<ty::Mat> &images, std::vector<ty::detection_t> &detections) {
-        if (1 != images.size()) {
-            DCL_APP_LOG(DCL_ERROR, "num_input(%d) must be equal 1", vOutputTensors_.size());
-            return -1;
-        }
+    int YoloV8::postprocess(const std::vector<dcl::Mat> &images, std::vector<dcl::detection_t> &detections) {
         if (3 != vOutputTensors_.size()) {
             DCL_APP_LOG(DCL_ERROR, "num_output(%d) must be equal 3", vOutputTensors_.size());
             return -2;
         }
+
         float gain = (float) input_sizes_[0] / std::max(images[0].h(), images[0].w());
         float pad_h = (input_sizes_[0] - images[0].h() * gain) * 0.5f;
         float pad_w = (input_sizes_[0] - images[0].w() * gain) * 0.5f;
@@ -32,12 +29,12 @@ namespace ty {
         const Tensor &argmax = vOutputTensors_[2];  // [1, 1, 8400]
         const Tensor &box = vOutputTensors_[1];  // [1, 64, 8400]
         const Tensor &cls = vOutputTensors_[0];  // [1, 80, 8400]
-        auto *idx_data = (int64 *) (argmax.data);
-        auto *box_data = (float *) (box.data);  // 16 4 8400
+        auto *idx_data = (int *) (argmax.data);
+        auto *box_data = (float *) (box.data);  // 4 16 8400
         auto *cls_data = (float *) (cls.data);
         const int num_anchors = cls.d[2];
         for (int k = 0; k < num_anchors; ++k) {
-            int64 max_idx = idx_data[k];
+            int max_idx = idx_data[k];
             float conf = cls_data[max_idx * num_anchors + k];
             if (conf < conf_threshold_inv_)
                 continue;
@@ -55,20 +52,28 @@ namespace ty {
                 data[i / 16] += val;
             }
 
-            data[0] = k % cls.w() + 0.5f - data[0];
-            data[1] = k / cls.h() + 0.5f - data[1];
-            data[2] = k % cls.w() + 0.5f + data[2];
-            data[3] = k / cls.h() + 0.5f + data[3];
+            int stride_size = 8;
+            int anchor_offset = 0;
+            int feat_map_size = 80;
+            if (k >= 6400 && k < 8000) {
+                stride_size = 16;
+                feat_map_size = 40;
+                anchor_offset = 6400;
+            } else if (k >= 8000) {
+                stride_size = 32;
+                feat_map_size = 20;
+                anchor_offset = 8000;
+            }
 
-            int stride_idx = 0;
-            if (k >= 6400 && k < 8000)
-                stride_idx = 1;
-            if (k >= 8000)
-                stride_idx = 2;
-            float cx = (data[0] + data[2]) * 0.5f * strides_[stride_idx];
-            float cy = (data[1] + data[3]) * 0.5f * strides_[stride_idx];
-            float w = (data[2] - data[0]) * strides_[stride_idx];
-            float h = (data[3] - data[1]) * strides_[stride_idx];
+            data[0] = (k - anchor_offset) % feat_map_size + 0.5f - data[0];
+            data[1] = (k - anchor_offset) / feat_map_size + 0.5f - data[1];
+            data[2] = (k - anchor_offset) % feat_map_size + 0.5f + data[2];
+            data[3] = (k - anchor_offset) / feat_map_size + 0.5f + data[3];
+
+            float cx = (data[0] + data[2]) * 0.5f * stride_size;
+            float cy = (data[1] + data[3]) * 0.5f * stride_size;
+            float w = (data[2] - data[0]) * stride_size;
+            float h = (data[3] - data[1]) * stride_size;
 
             // scale_coords
             int x1 = int((cx - w * 0.5f - pad_w) / gain);
@@ -87,7 +92,7 @@ namespace ty {
             detection.box.y1 = y1;
             detection.box.x2 = x2;
             detection.box.y2 = y2;
-            detection.cls = 0;
+            detection.cls = max_idx;
             detection.conf = sigmoid(conf);
             detections.emplace_back(detection);
         }
